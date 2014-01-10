@@ -18,7 +18,7 @@ from abc import abstractmethod
 from collections import Iterable, Sized
 from functools import wraps
 from types import NoneType
-from six import with_metaclass
+from six import with_metaclass, reraise
 
 class InvalidQuery(Exception):
     pass
@@ -36,12 +36,12 @@ def ensure_type(*types):
     return ensure_type_
 
 def validated_method(validator_name, func):
-    def validated_method_wrapper(self, *args, **kwargs):
+    def validated_method_wrapper(self, value, *args, **kwargs):
         if hasattr(self, validator_name):
-            getattr(self, validator_name)(*args, **kwargs)
+            getattr(self, validator_name)(value, *args, **kwargs)
         else:
             raise RuntimeError("Missing validator %s in %s" % (validator_name, type(self).__name__))
-        return func(self, *args, **kwargs)
+        return func(self, value, *args, **kwargs)
     return validated_method_wrapper
 
 def validator_metaclass(base=type):
@@ -75,6 +75,10 @@ def require_iterable(value, *args, **kwargs):
     if not isinstance(value, (Sized, Iterable)):
         raise InvalidQuery('Invalid query part %r. Expected an iterable value with a size.' % value)
 
+require_string = require(str, unicode)
+
+Skip = object()
+
 class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
     def __init__(self, closure, object_name):
         self.closure = closure
@@ -83,15 +87,44 @@ class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
 
     validate_gt = validate_gte = validate_lt = validate_lte = validate_ne = validate_eq = staticmethod(require_value)
     validate_item = staticmethod(require(tuple))
-    validate_query = lambda *args, **kwargs: None
+    validate_query = require(object)
     validate_and = validate_or = staticmethod(require(list, tuple))
     validate_in = validate_nin = staticmethod(require(set, list, tuple, frozenset))
-    #def validate_and(self, value, field_name):
-    #                if field_name is not None:
-    #                    raise InvalidQuery("Can't query part %r for field %r." % (value, field_name))
+
+    def validate_regex(self, value, field_name, context, stripped=object(), missing=object()):
+        options = context.get('$options', missing)
+        regex = context.get('$regex', missing)
+
+        extra_keys = set(context) - {'$options', '$regex'}
+        if extra_keys:
+            raise InvalidQuery('Invalid query part %r. You can only have `$options` with `$regex`.' % ', '.join(
+                repr(k) for k in extra_keys
+            ))
+
+        if regex is missing:
+            raise InvalidQuery('Invalid query part %r. Cannot have $options without $regex.' % context)
+        require_string(regex)
+        raw_options = 0
+        if options is not missing:
+            require_string(options)
+            for opt in options:
+                if opt not in ('s', 'x', 'm', 'i'):
+                    raise InvalidQuery(
+                        "Invalid query part %r. Unsupported regex option %r. Only 's', 'x', 'm', 'i' are supported !" % (
+                            value, opt
+                        )
+                    )
+                raw_options |= getattr(re, opt.upper())
+        try:
+            re.compile(regex, raw_options)
+        except re.error as exc:
+            reraise(InvalidQuery, "Invalid regular expression %r: %s" % (value, exc), sys.exc_info()[2])
+
+        context['$options'] = context['$regex'] = regex, raw_options
+    validate_options = validate_regex
 
     @abstractmethod
-    def visit_eq(self, value, field_name):
+    def visit_eq(self, value, field_name, context):
         pass
 
     @abstractmethod
@@ -100,51 +133,50 @@ class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
         return ' and '.join('(%s)' % part if multiple else part for part in parts)
 
     def visit(self, query):
-        return self.visit_query(query, None)
+        return self.visit_query(query)
 
-    def visit_query(self, query, field_name):
-        parts = [self.handle_item(item, field_name) for item in query.items()]
-        return self.render_and(parts, field_name)
+    def visit_query(self, query, field_name=None, context=None):
+        return self.render_and([
+            part
+            for part in self.handle_query(query, field_name)
+            if part is not Skip
+        ], field_name, context)
 
-    def handle_item(self, item, field_name):
-        name, value = item
-        if name.startswith('$'):
-            opname = name[1:]
-            handler = 'visit_' + opname
-            if hasattr(self, handler):
-                handler = getattr(self, handler)
-                return handler(value, field_name)
+    def handle_query(self, query, field_name, context=None):
+        for name, value in query.items():
+            if name.startswith('$'):
+                opname = name[1:]
+                handler = 'visit_' + opname
+                if hasattr(self, handler):
+                    handler = getattr(self, handler)
+                    yield handler(value, field_name, query)
+                else:
+                    raise InvalidQuery("%s doesn't support operator %r" % (type(self).__name__, name))
+            elif isinstance(value, dict):
+                yield self.visit_query(value, name, query)
             else:
-                raise InvalidQuery("%s doesn't support operator %r" % (type(self).__name__, name))
-        elif isinstance(value, dict):
-            return self.visit_query(value, name)
-        else:
-            return self.visit_eq(value, name)
-
-    def visit_and(self, parts, field_name=None, operator=' and '):
-        multiple = len(parts) > 1
-        return ' and '.join(self.visit_query(part, field_name) for part in parts)
+                yield self.visit_eq(value, name, query)
 
 class ExprVisitor(BaseVisitor):
-    def visit_gt(self, value, field_name):
+    def visit_gt(self, value, field_name, context):
         return "%s[%r] > %r" % (self.object_name, field_name, value)
 
-    def visit_gte(self, value, field_name):
+    def visit_gte(self, value, field_name, context):
         return "%s[%r] >= %r" % (self.object_name, field_name, value)
 
-    def visit_lt(self, value, field_name):
+    def visit_lt(self, value, field_name, context):
         return "%s[%r] < %r" % (self.object_name, field_name, value)
 
-    def visit_lte(self, value, field_name):
+    def visit_lte(self, value, field_name, context):
         return "%s[%r] <= %r" % (self.object_name, field_name, value)
 
-    def visit_ne(self, value, field_name):
+    def visit_ne(self, value, field_name, context):
         return "%s[%r] != %r" % (self.object_name, field_name, value)
 
-    def visit_eq(self, value, field_name):
+    def visit_eq(self, value, field_name, context):
         return "%s[%r] == %r" % (self.object_name, field_name, value)
 
-    def visit_in(self, value, field_name, operator='in'):
+    def visit_in(self, value, field_name, context, operator='in'):
         if self.closure is None:
             var_name = "{%s}" % ", ".join(repr(i) for i in value)
         else:
@@ -152,18 +184,33 @@ class ExprVisitor(BaseVisitor):
             arguments[var_name] = "{%s}" % ", ".join(repr(i) for i in value)
         return "%s[%r] %s %s" % (self.object_name, field_name, operator, var_name)
 
-    def visit_nin(self, value, field_name):
-        return self.visit_in(value, field_name, 'not in')
+    def visit_nin(self, value, field_name, context):
+        return self.visit_in(value, field_name, context, 'not in')
 
-    def visit_and(self, parts, field_name=None, operator=' and '):
-        return self.render_and([self.visit_query(part, field_name) for part in parts], field_name, operator)
+    def visit_and(self, parts, field_name, context, operator=' and '):
+        return self.render_and([self.visit_query(part, field_name) for part in parts], field_name, context, operator)
 
-    def visit_or(self, parts, field_name=None):
-        return self.visit_and(parts, operator=' or ')
+    def visit_or(self, parts, field_name, context):
+        return self.visit_and(parts, field_name, context, operator=' or ')
 
-    def render_and(self, parts, field_name=None, operator=' and '):
+    def render_and(self, parts, field_name, context, operator=' and '):
         multiple = len(parts) > 1
         return operator.join("(%s)" % part if multiple else part for part in parts)
+
+    def visit_regex(self, value, field_name, context):
+        value = context.get('$options', context.get('$regex'))
+        if value:
+            regex, options = value
+
+            if self.closure is None:
+                return "re.match(%r, %s[%r], %r)" % (regex, self.object_name, field_name, options)
+            else:
+                var_name = "var%s" % len(self.closure)
+                self.closure[var_name] = "re.compile(%r, %r)" % (regex, options)
+                return '%s.match(%s[%r]' % (var_name, self.object_name, field_name)
+        else:
+            return Skip
+    visit_options = visit_regex
 
 def compile_to_string(
     query,
