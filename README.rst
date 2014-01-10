@@ -141,7 +141,6 @@ Containers:
     "(hasattr(row, 'has_key') and row.has_key('myfield'))"
     >>> compile_to_string({"myfield": {"$exists": False}})
     "not (hasattr(row, 'has_key') and row.has_key('myfield'))"
-    >>> compile_to_string({"myfield": {"asd": {"$exists": True}}})
 
 Boolean operators:
 
