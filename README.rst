@@ -21,9 +21,10 @@
 Library to convert those MongoDB queries to something else, like a python
 expresion, a function or a Django Q object tree to be used with a ORM query.
 
+Only supports flat operations. No subdocuments. It might work but results are undefined/buggy.
+
 compile_to_string
 =================
-
 
 ::
 
@@ -48,7 +49,7 @@ Supported operators
 
 Arithmetic:
 
-* gt::
+* ``$gt``::
 
     >>> compile_to_string({"myfield": {"$gt": 1}})
     "row['myfield'] > 1"
@@ -57,41 +58,56 @@ Arithmetic:
     ...
     InvalidQuery: Invalid query part [1]. Expected value of type int, float, str, unicode, bool or None.
 
-* gte::
+* ``$gte``::
 
     >>> compile_to_string({"myfield": {"$gte": 1}})
     "row['myfield'] >= 1"
 
-* lt::
+* ``$lt``::
 
     >>> compile_to_string({"myfield": {"$lt": 1}})
     "row['myfield'] < 1"
 
-* lte::
+* ``$lte``::
 
     >>> compile_to_string({"myfield": {"$lte": 1}})
     "row['myfield'] <= 1"
 
-* eq::
+* ``$eq``::
 
     >>> compile_to_string({"myfield": {"$eq": 1}})
     "row['myfield'] == 1"
     >>> compile_to_string({"myfield": 1})
     "row['myfield'] == 1"
 
-* ne::
+* ``$ne``::
 
     >>> compile_to_string({"myfield": {"$ne": 1}})
     "row['myfield'] != 1"
 
+* ``$mod``::
+
+    >>> compile_to_string({"myfield": {"$mod": [2, 1]}})
+    "row['myfield'] % 2 == 1"
+    >>> compile_to_string({"myfield": {"$mod": [2, 1, 3]}})
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part [2, 1, 3]. You must have two items: divisor and remainder.
+    >>> compile_to_string({"myfield": {"$mod": 2}})
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part 2. Expected one of: list, tuple.
+    >>> compile_to_string({"myfield": {"$mod": (2, 1)}})
+    "row['myfield'] % 2 == 1"
+
 Containers:
 
-* in::
+* ``$in``::
 
     >>> compile_to_string({"myfield": {"$in": (1, 2, 3)}})
     "row['myfield'] in {1, 2, 3}"
 
-* nin::
+* ``$nin``::
 
     >>> compile_to_string({"myfield": {"$nin": [1, 2, 3]}})
     "row['myfield'] not in {1, 2, 3}"
@@ -100,7 +116,7 @@ Containers:
     ...
     InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
 
-* size::
+* ``$size``::
 
     >>> compile_to_string({"myfield": {"$size": 3}})
     "len(row['myfield']) == 3"
@@ -110,7 +126,7 @@ Containers:
     InvalidQuery: Invalid query part '3'. Expected one of: int, long.
 
 
-* all::
+* ``$all``::
 
     >>> compile_to_string({"myfield": {"$all": [1, 2, 3]}})
     "set(row['myfield']) == {1, 2, 3}"
@@ -119,9 +135,17 @@ Containers:
     ...
     InvalidQuery: Invalid query part 1. Expected one of: set, list, tuple, frozenset.
 
+* ``$exists``::
+
+    >>> compile_to_string({"myfield": {"$exists": True}})
+    "(hasattr(row, 'has_key') and row.has_key('myfield'))"
+    >>> compile_to_string({"myfield": {"$exists": False}})
+    "not (hasattr(row, 'has_key') and row.has_key('myfield'))"
+    >>> compile_to_string({"myfield": {"asd": {"$exists": True}}})
+
 Boolean operators:
 
-* or::
+* ``$or``::
 
     >>> compile_to_string({'$or':  [{"bubu": {"$gt": 1}}, {'bubu': {'$lt': 2}}]})
     "(row['bubu'] > 1) or (row['bubu'] < 2)"
@@ -130,7 +154,7 @@ Boolean operators:
     ...
     InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
 
-* and::
+* ``$and``::
 
     >>> compile_to_string({'$and':  [{"bubu": {"$gt": 1}}, {'bubu': {'$lt': 2}}]})
     "(row['bubu'] > 1) and (row['bubu'] < 2)"
@@ -139,7 +163,7 @@ Boolean operators:
     ...
     InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
 
-* *nesting*::
+* ``$*nesting*``::
 
     >>> compile_to_string({'$and': [
     ...     {"bubu": {"$gt": 1}},
@@ -155,7 +179,7 @@ Boolean operators:
 
 Regular expressions:
 
-* regex::
+* ``$regex``::
 
     >>> compile_to_string({"myfield": {"$regex": 'a'}})
     "re.match('a', row['myfield'], 0)"
@@ -186,4 +210,3 @@ Regular expressions:
     Traceback (most recent call last):
     ...
     InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
-

@@ -86,12 +86,16 @@ class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
 
 
     validate_gt = validate_gte = validate_lt = validate_lte = validate_ne = validate_eq = staticmethod(require_value)
-    validate_item = staticmethod(require(tuple))
-    validate_query = staticmethod(require(object))
+    validate_query = staticmethod(require(dict))
+    validate_exists = staticmethod(require(object))
     validate_and = validate_or = staticmethod(require(list, tuple))
     validate_all = validate_in = validate_nin = staticmethod(require(set, list, tuple, frozenset))
     validate_size = staticmethod(require(int, long))
 
+    def validate_mod(self, value, field_name, context):
+        self.validate_and(value)
+        if len(value) != 2:
+            raise InvalidQuery('Invalid query part %r. You must have two items: divisor and remainder.' % value)
 
     def validate_regex(self, value, field_name, context, stripped=object(), missing=object()):
         options = context.get('$options', missing)
@@ -224,6 +228,17 @@ class ExprVisitor(BaseVisitor):
             return 'set(%s[%r]) == %s' % (self.object_name, field_name, var_name)
         else:
             return 'set(%s[%r]) == {%s}' % (self.object_name, field_name, ', '.join(repr(i) for i in value))
+
+    def visit_mod(self, value, field_name, context):
+        divisor, remainder = value
+        return '%s[%r] %% %s == %s' % (self.object_name, field_name, divisor, remainder)
+
+    def visit_exists(self, value, field_name, context):
+        return '%s(hasattr(%s, %r) and %s.has_key(%r))' % (
+            '' if value else 'not ',
+            self.object_name, "has_key", self.object_name, field_name,
+        )
+
 
 def compile_to_string(
     query,
