@@ -66,7 +66,7 @@ def require(*types):
     return require_
 
 def require_value(value, *args, **kwargs):
-    if not isinstance(value, (int, float, str, unicode, bool, NoneType)):
+    if not isinstance(value, (int, long, float, str, unicode, bool, NoneType)):
         raise InvalidQuery(
             'Invalid query part %r. Expected value of type int, float, str, unicode, bool or None.' % value
         )
@@ -87,9 +87,11 @@ class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
 
     validate_gt = validate_gte = validate_lt = validate_lte = validate_ne = validate_eq = staticmethod(require_value)
     validate_item = staticmethod(require(tuple))
-    validate_query = require(object)
+    validate_query = staticmethod(require(object))
     validate_and = validate_or = staticmethod(require(list, tuple))
-    validate_in = validate_nin = staticmethod(require(set, list, tuple, frozenset))
+    validate_all = validate_in = validate_nin = staticmethod(require(set, list, tuple, frozenset))
+    validate_size = staticmethod(require(int, long))
+
 
     def validate_regex(self, value, field_name, context, stripped=object(), missing=object()):
         options = context.get('$options', missing)
@@ -211,6 +213,17 @@ class ExprVisitor(BaseVisitor):
         else:
             return Skip
     visit_options = visit_regex
+
+    def visit_size(self, value, field_name, context):
+        return "len(%s[%r]) == %r" % (self.object_name, field_name, value)
+
+    def visit_all(self, value, field_name, context):
+        if self.closure:
+            var_name = "var%s" % len(self.closure)
+            self.closure[var_name] = "{%s}" % ', '.join(repr(i) for i in value)
+            return 'set(%s[%r]) == %s' % (self.object_name, field_name, var_name)
+        else:
+            return 'set(%s[%r]) == {%s}' % (self.object_name, field_name, ', '.join(repr(i) for i in value))
 
 def compile_to_string(
     query,
