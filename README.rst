@@ -186,6 +186,9 @@ Regular expressions:
     >>> compile_to_string({"bubu": {"$regex": ".*x"}}, object_name='X')
     "re.match('.*x', X['bubu'], 0)"
 
+    >>> compile_to_string({"myfield": {"$regex": 'a', "$options": 'i'}})
+    "re.match('a', row['myfield'], 2)"
+
     >>> closure = {}
     >>> compile_to_string({"bubu": {"$regex": ".*x"}}, closure=closure), closure
     ("var0.match(row['bubu'])", {'var0': "re.compile('.*x', 0)"})
@@ -314,7 +317,7 @@ Containers:
 * ``$all``::
 
     >>> compile_to_func({"myfield": {"$all": [1, 2, 3]}}).source
-    "lambda item: (set(item['myfield']) == {1, 2, 3}) # compiled from {'myfield': {'$all': [1, 2, 3]}}"
+    "lambda item, var0={1, 2, 3}: (set(item['myfield']) == var0) # compiled from {'myfield': {'$all': [1, 2, 3]}}"
     >>> compile_to_func({"myfield": {"$all": 1}}).source
     Traceback (most recent call last):
     ...
@@ -366,9 +369,10 @@ Regular expressions:
 * ``$regex``::
 
     >>> compile_to_func({"myfield": {"$regex": 'a'}}).source
-    "lambda item, var0=re.compile('a', 0): (var0.match(item['myfield'])) # compiled from {'myfield': {'$options': ('a', 0), '$regex': ('a', 0)}}"
+    "lambda item, var0=re.compile('a', 0): (var0.match(item['myfield'])) # compiled from {'myfield': {'$regex': 'a'}}"
 
     >>> compile_to_func({"myfield": {"$regex": 'a', "$options": 'i'}}).source
+    "lambda item, var0=re.compile('a', 2): (var0.match(item['myfield'])) # compiled from {'myfield': {'$options': 'i', '$regex': 'a'}}"
 
     >>> compile_to_func({"myfield": {"$regex": 'junk('}}).source
     Traceback (most recent call last):
@@ -389,3 +393,36 @@ Regular expressions:
     Traceback (most recent call last):
     ...
     InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
+
+Extending (implementing a custom visitor)
+=========================================
+
+There are few requirements for a visitor. Fist, you need to be able to render boolean $and::
+
+    >>> from mongoql_conv import BaseVisitor
+    >>> class MyVisitor(BaseVisitor):
+    ...     def visit_foobar(self, value, field_name, context):
+    ...         return "foobar(%s[%r], %r)" % (self.object_name, field_name, value)
+    >>> MyVisitor(None, 'obj').visit({'field': {'$foobar': 'test'}})
+    Traceback (most recent call last):
+    ...
+    TypeError: Can't instantiate abstract class MyVisitor with abstract methods render_and
+
+This is the minimal code to have a custom generator::
+
+    >>> class MyVisitor(BaseVisitor):
+    ...     def visit_foobar(self, value, field_name, context):
+    ...         return "foobar(%s[%r], %r)" % (self.object_name, field_name, value)
+    ...     def render_and(self, parts, field_name, context):
+    ...         return ' & '.join(parts)
+    >>> MyVisitor(None, 'obj').visit({'field': {'$foobar': 'test'}})
+    "foobar(obj['field'], 'test')"
+
+Ofcourse, it won't do much::
+
+    >>> MyVisitor(None, 'obj').visit({'field': {'$ne': 'test'}})
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: MyVisitor doesn't support operator '$ne'
+
+Take a look at ``ExprVisitor`` too see all the methods you *should* implement.

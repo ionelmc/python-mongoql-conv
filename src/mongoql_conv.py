@@ -15,32 +15,28 @@ import weakref
 import zlib
 from abc import ABCMeta
 from abc import abstractmethod
-from collections import Iterable, Sized
+from collections import Iterable
+from collections import Sized
 from functools import wraps
 from types import NoneType
-from six import with_metaclass, reraise
+from warnings import warn
+
+from six import reraise
+from six import with_metaclass
+
 
 class InvalidQuery(Exception):
-    pass
+    pass # pragma: no cover
 
 if sys.version_info[0] == 3:
     unicode = str
 
-def ensure_type(*types):
-    def ensure_type_(self, value, *args):
-        if not isinstance(value, types):
-            raise InvalidQuery('Invalid query part %r. Expected one of: %s.' % (
-                value,
-                ', '.join('None' if t is NoneType else t.__name__ for t in types)
-            ))
-    return ensure_type_
-
 def validated_method(validator_name, func):
     def validated_method_wrapper(self, value, *args, **kwargs):
         if hasattr(self, validator_name):
-            getattr(self, validator_name)(value, *args, **kwargs)
+            value = getattr(self, validator_name)(value, *args, **kwargs)
         else:
-            raise RuntimeError("Missing validator %s in %s" % (validator_name, type(self).__name__))
+            warn("Missing validator %s in %s" % (validator_name, type(self).__name__))
         return func(self, value, *args, **kwargs)
     return validated_method_wrapper
 
@@ -63,6 +59,7 @@ def require(*types):
                 value,
                 ', '.join('None' if t is NoneType else t.__name__ for t in types)
             ))
+        return value
     return require_
 
 def require_value(value, *args, **kwargs):
@@ -70,14 +67,13 @@ def require_value(value, *args, **kwargs):
         raise InvalidQuery(
             'Invalid query part %r. Expected value of type int, float, str, unicode, bool or None.' % value
         )
-
-def require_iterable(value, *args, **kwargs):
-    if not isinstance(value, (Sized, Iterable)):
-        raise InvalidQuery('Invalid query part %r. Expected an iterable value with a size.' % value)
+    return value
 
 require_string = require(str, unicode)
 
 Skip = object()
+Stripped = object()
+Missing = object()
 
 class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
     def __init__(self, closure, object_name):
@@ -96,10 +92,13 @@ class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
         self.validate_and(value)
         if len(value) != 2:
             raise InvalidQuery('Invalid query part %r. You must have two items: divisor and remainder.' % value)
+        return value
 
-    def validate_regex(self, value, field_name, context, stripped=object(), missing=object()):
-        options = context.get('$options', missing)
-        regex = context.get('$regex', missing)
+    def validate_regex(self, value, field_name, context):
+        options = context.get('$options', Missing)
+        regex = context.get('$regex', Missing)
+        if Stripped in (options, regex):
+            return Stripped
 
         extra_keys = set(context) - {'$options', '$regex'}
         if extra_keys:
@@ -107,11 +106,11 @@ class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
                 repr(k) for k in extra_keys
             ))
 
-        if regex is missing:
+        if regex is Missing:
             raise InvalidQuery('Invalid query part %r. Cannot have $options without $regex.' % context)
         require_string(regex)
         raw_options = 0
-        if options is not missing:
+        if options is not Missing:
             require_string(options)
             for opt in options:
                 if opt not in ('s', 'x', 'm', 'i'):
@@ -126,17 +125,17 @@ class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
         except re.error as exc:
             reraise(InvalidQuery, "Invalid regular expression %r: %s" % (value, exc), sys.exc_info()[2])
 
-        context['$options'] = context['$regex'] = regex, raw_options
+        context['$options'] = context['$regex'] = Stripped
+        return regex, raw_options
     validate_options = validate_regex
 
     @abstractmethod
     def visit_eq(self, value, field_name, context):
-        pass
+        pass # pragma: no cover
 
     @abstractmethod
-    def visit_and(self, parts):
-        multiple = len(parts) > 1
-        return ' and '.join('(%s)' % part if multiple else part for part in parts)
+    def render_and(self, parts):
+        pass # pragma: no cover
 
     def visit(self, query):
         return self.visit_query(query)
@@ -149,6 +148,7 @@ class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
         ], field_name, context)
 
     def handle_query(self, query, field_name, context=None):
+        query = query.copy()
         for name, value in query.items():
             if name.startswith('$'):
                 opname = name[1:]
@@ -204,8 +204,9 @@ class ExprVisitor(BaseVisitor):
         return operator.join("(%s)" % part if multiple else part for part in parts)
 
     def visit_regex(self, value, field_name, context):
-        value = context.get('$options', context.get('$regex'))
-        if value:
+        if value is Stripped:
+            return Skip
+        else:
             regex, options = value
 
             if self.closure is None:
@@ -214,20 +215,18 @@ class ExprVisitor(BaseVisitor):
                 var_name = "var%s" % len(self.closure)
                 self.closure[var_name] = "re.compile(%r, %r)" % (regex, options)
                 return '%s.match(%s[%r])' % (var_name, self.object_name, field_name)
-        else:
-            return Skip
     visit_options = visit_regex
 
     def visit_size(self, value, field_name, context):
         return "len(%s[%r]) == %r" % (self.object_name, field_name, value)
 
     def visit_all(self, value, field_name, context):
-        if self.closure:
+        if self.closure is None:
+            return 'set(%s[%r]) == {%s}' % (self.object_name, field_name, ', '.join(repr(i) for i in value))
+        else:
             var_name = "var%s" % len(self.closure)
             self.closure[var_name] = "{%s}" % ', '.join(repr(i) for i in value)
             return 'set(%s[%r]) == %s' % (self.object_name, field_name, var_name)
-        else:
-            return 'set(%s[%r]) == {%s}' % (self.object_name, field_name, ', '.join(repr(i) for i in value))
 
     def visit_mod(self, value, field_name, context):
         divisor, remainder = value
@@ -243,10 +242,10 @@ def compile_to_string(query, closure=None, object_name='row'):
     return visitor.visit(query)
 
 def compile_to_func(query, use_arguments=True):
-    arguments = {} if use_arguments else None
-    as_string = compile_to_string(query, arguments, object_name='item')
+    closure = {} if use_arguments else None
+    as_string = compile_to_string(query, closure, object_name='item')
     as_code = "lambda item%s: (%s) # compiled from %r" % (
-        ', ' + ', '.join('%s=%s' % (var_name, value) for var_name, value in arguments.items()) if arguments else '',
+        ', ' + ', '.join('%s=%s' % (var_name, value) for var_name, value in closure.items()) if closure else '',
         as_string,
         query
     )
