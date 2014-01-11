@@ -9,7 +9,8 @@ setup(
     url = 'https://github.com/ionelmc/python-mongoql-conv',
     download_url = '',
     license = 'BSD',
-    description = ".",
+    description = "Library to convert those MongoDB queries to something else, like a python "
+                  "expresion, a function or a Django Q object tree to be used with a ORM query.",
     long_description = open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
     author = 'Ionel Cristian Mărieș',
     author_email = 'contact@ionelmc.ro',
