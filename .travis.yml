@@ -23,7 +23,7 @@ before_install:
     python --version
     uname -a
     lsb_release -a
-    sudo pip install tox
+    sudo pip install tox coveralls
 script: tox -v -e $WITH$TRAVIS_PYTHON_VERSION
 after_success:
   - coveralls || /bin/true
