@@ -49,7 +49,7 @@ Supported operators
 
 Arithmetic:
 
-* ``$gt``::
+* **$gt**::
 
     >>> compile_to_string({"myfield": {"$gt": 1}})
     "row['myfield'] > 1"
@@ -58,34 +58,34 @@ Arithmetic:
     ...
     InvalidQuery: Invalid query part [1]. Expected value of type int, float, str, unicode, bool or None.
 
-* ``$gte``::
+* **$gte**::
 
     >>> compile_to_string({"myfield": {"$gte": 1}})
     "row['myfield'] >= 1"
 
-* ``$lt``::
+* **$lt**::
 
     >>> compile_to_string({"myfield": {"$lt": 1}})
     "row['myfield'] < 1"
 
-* ``$lte``::
+* **$lte**::
 
     >>> compile_to_string({"myfield": {"$lte": 1}})
     "row['myfield'] <= 1"
 
-* ``$eq``::
+* **$eq**::
 
     >>> compile_to_string({"myfield": {"$eq": 1}})
     "row['myfield'] == 1"
     >>> compile_to_string({"myfield": 1})
     "row['myfield'] == 1"
 
-* ``$ne``::
+* **$ne**::
 
     >>> compile_to_string({"myfield": {"$ne": 1}})
     "row['myfield'] != 1"
 
-* ``$mod``::
+* **$mod**::
 
     >>> compile_to_string({"myfield": {"$mod": [2, 1]}})
     "row['myfield'] % 2 == 1"
@@ -102,12 +102,12 @@ Arithmetic:
 
 Containers:
 
-* ``$in``::
+* **$in**::
 
     >>> compile_to_string({"myfield": {"$in": (1, 2, 3)}})
     "row['myfield'] in {1, 2, 3}"
 
-* ``$nin``::
+* **$nin**::
 
     >>> compile_to_string({"myfield": {"$nin": [1, 2, 3]}})
     "row['myfield'] not in {1, 2, 3}"
@@ -116,7 +116,7 @@ Containers:
     ...
     InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
 
-* ``$size``::
+* **$size**::
 
     >>> compile_to_string({"myfield": {"$size": 3}})
     "len(row['myfield']) == 3"
@@ -126,7 +126,7 @@ Containers:
     InvalidQuery: Invalid query part '3'. Expected one of: int, long.
 
 
-* ``$all``::
+* **$all**::
 
     >>> compile_to_string({"myfield": {"$all": [1, 2, 3]}})
     "set(row['myfield']) == {1, 2, 3}"
@@ -135,7 +135,7 @@ Containers:
     ...
     InvalidQuery: Invalid query part 1. Expected one of: set, list, tuple, frozenset.
 
-* ``$exists``::
+* **$exists**::
 
     >>> compile_to_string({"myfield": {"$exists": True}})
     "row.has_key('myfield')"
@@ -144,7 +144,7 @@ Containers:
 
 Boolean operators:
 
-* ``$or``::
+* **$or**::
 
     >>> compile_to_string({'$or':  [{"bubu": {"$gt": 1}}, {'bubu': {'$lt': 2}}]})
     "(row['bubu'] > 1) or (row['bubu'] < 2)"
@@ -153,7 +153,7 @@ Boolean operators:
     ...
     InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
 
-* ``$and``::
+* **$and**::
 
     >>> compile_to_string({'$and':  [{"bubu": {"$gt": 1}}, {'bubu': {'$lt': 2}}]})
     "(row['bubu'] > 1) and (row['bubu'] < 2)"
@@ -162,7 +162,7 @@ Boolean operators:
     ...
     InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
 
-* ``$*nesting*``::
+* **$*nesting***::
 
     >>> compile_to_string({'$and': [
     ...     {"bubu": {"$gt": 1}},
@@ -178,7 +178,7 @@ Boolean operators:
 
 Regular expressions:
 
-* ``$regex``::
+* **$regex**::
 
     >>> compile_to_string({"myfield": {"$regex": 'a'}})
     "re.match('a', row['myfield'], 0)"
@@ -237,7 +237,7 @@ Supported operators
 
 Arithmetic:
 
-* ``$gt``::
+* **$gt**::
 
     >>> compile_to_func({"myfield": {"$gt": 1}}).source
     "lambda item: (item['myfield'] > 1) # compiled from {'myfield': {'$gt': 1}}"
@@ -246,34 +246,34 @@ Arithmetic:
     ...
     InvalidQuery: Invalid query part [1]. Expected value of type int, float, str, unicode, bool or None.
 
-* ``$gte``::
+* **$gte**::
 
     >>> compile_to_func({"myfield": {"$gte": 1}}).source
     "lambda item: (item['myfield'] >= 1) # compiled from {'myfield': {'$gte': 1}}"
 
-* ``$lt``::
+* **$lt**::
 
     >>> compile_to_func({"myfield": {"$lt": 1}}).source
     "lambda item: (item['myfield'] < 1) # compiled from {'myfield': {'$lt': 1}}"
 
-* ``$lte``::
+* **$lte**::
 
     >>> compile_to_func({"myfield": {"$lte": 1}}).source
     "lambda item: (item['myfield'] <= 1) # compiled from {'myfield': {'$lte': 1}}"
 
-* ``$eq``::
+* **$eq**::
 
     >>> compile_to_func({"myfield": {"$eq": 1}}).source
     "lambda item: (item['myfield'] == 1) # compiled from {'myfield': {'$eq': 1}}"
     >>> compile_to_func({"myfield": 1}).source
     "lambda item: (item['myfield'] == 1) # compiled from {'myfield': 1}"
 
-* ``$ne``::
+* **$ne**::
 
     >>> compile_to_func({"myfield": {"$ne": 1}}).source
     "lambda item: (item['myfield'] != 1) # compiled from {'myfield': {'$ne': 1}}"
 
-* ``$mod``::
+* **$mod**::
 
     >>> compile_to_func({"myfield": {"$mod": [2, 1]}}).source
     "lambda item: (item['myfield'] % 2 == 1) # compiled from {'myfield': {'$mod': [2, 1]}}"
@@ -290,12 +290,12 @@ Arithmetic:
 
 Containers:
 
-* ``$in``::
+* **$in**::
 
     >>> compile_to_func({"myfield": {"$in": (1, 2, 3)}}).source
     "lambda item, var0={1, 2, 3}: (item['myfield'] in var0) # compiled from {'myfield': {'$in': (1, 2, 3)}}"
 
-* ``$nin``::
+* **$nin**::
 
     >>> compile_to_func({"myfield": {"$nin": [1, 2, 3]}}).source
     "lambda item, var0={1, 2, 3}: (item['myfield'] not in var0) # compiled from {'myfield': {'$nin': [1, 2, 3]}}"
@@ -304,7 +304,7 @@ Containers:
     ...
     InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
 
-* ``$size``::
+* **$size**::
 
     >>> compile_to_func({"myfield": {"$size": 3}}).source
     "lambda item: (len(item['myfield']) == 3) # compiled from {'myfield': {'$size': 3}}"
@@ -314,7 +314,7 @@ Containers:
     InvalidQuery: Invalid query part '3'. Expected one of: int, long.
 
 
-* ``$all``::
+* **$all**::
 
     >>> compile_to_func({"myfield": {"$all": [1, 2, 3]}}).source
     "lambda item, var0={1, 2, 3}: (set(item['myfield']) == var0) # compiled from {'myfield': {'$all': [1, 2, 3]}}"
@@ -323,7 +323,7 @@ Containers:
     ...
     InvalidQuery: Invalid query part 1. Expected one of: set, list, tuple, frozenset.
 
-* ``$exists``::
+* **$exists**::
 
     >>> compile_to_func({"myfield": {"$exists": True}}).source
     "lambda item: (item.has_key('myfield')) # compiled from {'myfield': {'$exists': True}}"
@@ -332,7 +332,7 @@ Containers:
 
 Boolean operators:
 
-* ``$or``::
+* **$or**::
 
     >>> compile_to_func({'$or':  [{"bubu": {"$gt": 1}}, {'bubu': {'$lt': 2}}]}).source
     "lambda item: ((item['bubu'] > 1) or (item['bubu'] < 2)) # compiled from {'$or': [{'bubu': {'$gt': 1}}, {'bubu': {'$lt': 2}}]}"
@@ -341,7 +341,7 @@ Boolean operators:
     ...
     InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
 
-* ``$and``::
+* **$and**::
 
     >>> compile_to_func({'$and':  [{"bubu": {"$gt": 1}}, {'bubu': {'$lt': 2}}]}).source
     "lambda item: ((item['bubu'] > 1) and (item['bubu'] < 2)) # compiled from {'$and': [{'bubu': {'$gt': 1}}, {'bubu': {'$lt': 2}}]}"
@@ -350,7 +350,7 @@ Boolean operators:
     ...
     InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
 
-* ``$*nesting*``::
+* **$*nesting***::
 
     >>> compile_to_func({'$and': [
     ...     {"bubu": {"$gt": 1}},
@@ -366,7 +366,7 @@ Boolean operators:
 
 Regular expressions:
 
-* ``$regex``::
+* **$regex**::
 
     >>> compile_to_func({"myfield": {"$regex": 'a'}}).source
     "lambda item, var0=re.compile('a', 0): (var0.match(item['myfield'])) # compiled from {'myfield': {'$regex': 'a'}}"
