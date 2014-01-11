@@ -187,7 +187,7 @@ class ExprVisitor(BaseVisitor):
             var_name = "{%s}" % ", ".join(repr(i) for i in value)
         else:
             var_name = "var%s" % len(self.closure)
-            arguments[var_name] = "{%s}" % ", ".join(repr(i) for i in value)
+            self.closure[var_name] = "{%s}" % ", ".join(repr(i) for i in value)
         return "%s[%r] %s %s" % (self.object_name, field_name, operator, var_name)
 
     def visit_nin(self, value, field_name, context):
@@ -213,7 +213,7 @@ class ExprVisitor(BaseVisitor):
             else:
                 var_name = "var%s" % len(self.closure)
                 self.closure[var_name] = "re.compile(%r, %r)" % (regex, options)
-                return '%s.match(%s[%r]' % (var_name, self.object_name, field_name)
+                return '%s.match(%s[%r])' % (var_name, self.object_name, field_name)
         else:
             return Skip
     visit_options = visit_regex
@@ -234,9 +234,8 @@ class ExprVisitor(BaseVisitor):
         return '%s[%r] %% %s == %s' % (self.object_name, field_name, divisor, remainder)
 
     def visit_exists(self, value, field_name, context):
-        return '%s(hasattr(%s, %r) and %s.has_key(%r))' % (
-            '' if value else 'not ',
-            self.object_name, "has_key", self.object_name, field_name,
+        return '%s%s.has_key(%r)' % (
+            '' if value else 'not ', self.object_name, field_name,
         )
 
 def compile_to_string(query, closure=None, object_name='row'):
