@@ -16,6 +16,7 @@ setup(
     author_email = 'contact@ionelmc.ro',
     packages = find_packages('src'),
     package_dir = {'':'src'},
+    py_modules = ['mongoql_conv'],
     include_package_data = True,
     zip_safe = False,
     classifiers = [

@@ -18,18 +18,15 @@ from abc import abstractmethod
 from collections import Iterable
 from collections import Sized
 from functools import wraps
-from types import NoneType
 from warnings import warn
 
 from six import reraise
 from six import with_metaclass
 
+NoneType = type(None)
 
 class InvalidQuery(Exception):
     pass # pragma: no cover
-
-if sys.version_info[0] == 3:
-    unicode = str
 
 def validated_method(validator_name, func):
     def validated_method_wrapper(self, value, *args, **kwargs):
@@ -62,14 +59,14 @@ def require(*types):
         return value
     return require_
 
-def require_value(value, *args, **kwargs):
-    if not isinstance(value, (int, long, float, str, unicode, bool, NoneType)):
-        raise InvalidQuery(
-            'Invalid query part %r. Expected value of type int, float, str, unicode, bool or None.' % value
-        )
-    return value
-
-require_string = require(str, unicode)
+if sys.version_info[0] == 3:
+    require_string = require(str)
+    require_integer = require(int)
+    require_value = require(int, float, str, bool, NoneType)
+else:
+    require_string = require(str, unicode)
+    require_integer = require(int, long)
+    require_value = require(int, long, float, str, unicode, bool, NoneType)
 
 Skip = object()
 Stripped = object()
@@ -86,7 +83,7 @@ class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
     validate_exists = staticmethod(require(object))
     validate_and = validate_or = staticmethod(require(list, tuple))
     validate_all = validate_in = validate_nin = staticmethod(require(set, list, tuple, frozenset))
-    validate_size = staticmethod(require(int, long))
+    validate_size = staticmethod(require_integer)
 
     def validate_mod(self, value, field_name, context):
         self.validate_and(value)
@@ -123,9 +120,10 @@ class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
         try:
             re.compile(regex, raw_options)
         except re.error as exc:
-            reraise(InvalidQuery, "Invalid regular expression %r: %s" % (value, exc), sys.exc_info()[2])
-
-        context['$options'] = context['$regex'] = Stripped
+            reraise(InvalidQuery, InvalidQuery("Invalid regular expression %r: %s" % (value, exc)), sys.exc_info()[2])
+        context['$regex'] = Stripped
+        if '$options' in context:
+            context['$options'] = Stripped
         return regex, raw_options
     validate_options = validate_regex
 
