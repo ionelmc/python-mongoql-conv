@@ -47,7 +47,8 @@ compile_to_string
 Supported operators
 -------------------
 
-Arithmetic:
+Arithmetic
+``````````
 
 * **$gt**::
 
@@ -100,7 +101,8 @@ Arithmetic:
     >>> compile_to_string({"myfield": {"$mod": (2, 1)}})
     "row['myfield'] % 2 == 1"
 
-Containers:
+Containers
+``````````
 
 * **$in**::
 
@@ -142,7 +144,8 @@ Containers:
     >>> compile_to_string({"myfield": {"$exists": False}})
     "not row.has_key('myfield')"
 
-Boolean operators:
+Boolean operators
+`````````````````
 
 * **$or**::
 
@@ -176,7 +179,8 @@ Boolean operators:
     ... ]})
     "(row['bubu'] > 1) and ((row['bubu'] < 2) or ((row['bubu'] < 3) and (row['bubu'] < 4)))"
 
-Regular expressions:
+Regular expressions
+```````````````````
 
 * **$regex**::
 
@@ -235,7 +239,8 @@ compile_to_func
 Supported operators
 -------------------
 
-Arithmetic:
+Arithmetic
+``````````
 
 * **$gt**::
 
@@ -288,7 +293,8 @@ Arithmetic:
     >>> compile_to_func({"myfield": {"$mod": (2, 1)}}).source
     "lambda item: (item['myfield'] % 2 == 1) # compiled from {'myfield': {'$mod': (2, 1)}}"
 
-Containers:
+Containers
+``````````
 
 * **$in**::
 
@@ -330,7 +336,8 @@ Containers:
     >>> compile_to_func({"myfield": {"$exists": False}}).source
     "lambda item: (not item.has_key('myfield')) # compiled from {'myfield': {'$exists': False}}"
 
-Boolean operators:
+Boolean operators
+`````````````````
 
 * **$or**::
 
@@ -364,7 +371,8 @@ Boolean operators:
     ... ]}).source
     "lambda item: ((item['bubu'] > 1) and ((item['bubu'] < 2) or ((item['bubu'] < 3) and (item['bubu'] < 4)))) # compiled from {'$and': [{'bubu': {'$gt': 1}}, {'$or': [{'bubu': {'$lt': 2}}, {'$and': [{'bubu': {'$lt': 3}}, {'bubu': {'$lt': 4}}]}]}]}"
 
-Regular expressions:
+Regular expressions
+```````````````````
 
 * **$regex**::
 
