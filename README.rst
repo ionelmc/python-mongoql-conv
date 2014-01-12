@@ -28,7 +28,7 @@ API:
 
     * `mongoql_conv.to_string <#to_string>`_
     * `mongoql_conv.to_func <#to_func>`_
-    * `mongoql_conv.django.to_Q <to_Q <#to_Q>`_
+    * `mongoql_conv.django.to_Q <#to_Q>`_
 
 
 to_string
