@@ -21,14 +21,15 @@
 Library to convert those MongoDB queries to something else, like a python
 expresion, a function or a Django Q object tree to be used with a ORM query.
 
-Only supports flat operations. No subdocuments. It might work but results are undefined/buggy.
+For now, only supports flat operations. No subdocuments. It might work but results are undefined/buggy. *Could be fixed though ...*
 
 
-API:
+API
+===
 
-    * ``mongoql_conv.to_string``: to_string_
-    * ``mongoql_conv.to_func``: to_func_
-    * ``mongoql_conv.django.to_Q``: to_Q_
+* ``mongoql_conv.to_string``: to_string_
+* ``mongoql_conv.to_func``: to_func_
+* ``mongoql_conv.django.to_Q``: to_Q_
 
 
 to_string
