@@ -222,11 +222,11 @@ class ExprVisitor(BaseVisitor):
 
     def visit_all(self, value, field_name, context):
         if self.closure is None:
-            return 'set(%s[%r]) == {%s}' % (self.object_name, field_name, ', '.join(repr(i) for i in value))
+            return 'set(%s[%r]) >= {%s}' % (self.object_name, field_name, ', '.join(repr(i) for i in value))
         else:
             var_name = "var%s" % len(self.closure)
             self.closure[var_name] = "{%s}" % ', '.join(repr(i) for i in value)
-            return 'set(%s[%r]) == %s' % (self.object_name, field_name, var_name)
+            return 'set(%s[%r]) >= %s' % (self.object_name, field_name, var_name)
 
     def visit_mod(self, value, field_name, context):
         divisor, remainder = value
