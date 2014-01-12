@@ -24,7 +24,7 @@ from warnings import warn
 from six import reraise
 from six import with_metaclass
 
-__all__ = "InvalidQuery", "compile_to_string", "compile_to_func"
+__all__ = "InvalidQuery", "to_string", "to_func"
 
 NoneType = type(None)
 
@@ -237,13 +237,13 @@ class ExprVisitor(BaseVisitor):
             '' if value else 'not ', self.object_name, field_name,
         )
 
-def compile_to_string(query, closure=None, object_name='row'):
+def to_string(query, closure=None, object_name='row'):
     visitor = ExprVisitor(closure, object_name)
     return visitor.visit(query)
 
-def compile_to_func(query, use_arguments=True):
+def to_func(query, use_arguments=True):
     closure = {} if use_arguments else None
-    as_string = compile_to_string(query, closure, object_name='item')
+    as_string = to_string(query, closure, object_name='item')
     as_code = "lambda item%s: (%s) # compiled from %r" % (
         ', ' + ', '.join('%s=%s' % (var_name, value) for var_name, value in closure.items()) if closure else '',
         as_string,

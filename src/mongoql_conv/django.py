@@ -59,4 +59,4 @@ class DjangoVisitor(BaseVisitor):
                 return Q(("%s__regex" % field_name, regex))
     visit_options = visit_regex
 
-compile_to_Q = compile_to_django = DjangoVisitor().visit
+to_Q = to_django = DjangoVisitor().visit
