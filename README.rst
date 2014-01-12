@@ -412,18 +412,18 @@ Boolean operators
     ...
     InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
 
-    >>> filter(to_func({'$or':  [{"bubu": {"$gt": 3}}, {'bubu': {'$lt': 2}}]}), [{"bubu": i} for i in range(5)])
+    >>> filter(to_func({'$or': [{"bubu": {"$gt": 3}}, {'bubu': {'$lt': 2}}]}), [{"bubu": i} for i in range(5)])
     [{'bubu': 0}, {'bubu': 1}, {'bubu': 4}]
 
 * **$and**::
 
-    >>> to_func({'$and':  [{"bubu": {"$gt": 1}}, {'bubu': {'$lt': 2}}]}).source
+    >>> to_func({'$and': [{"bubu": {"$gt": 1}}, {'bubu': {'$lt': 2}}]}).source
     "lambda item: ((item['bubu'] > 1) and (item['bubu'] < 2)) # compiled from {'$and': [{'bubu': {'$gt': 1}}, {'bubu': {'$lt': 2}}]}"
     >>> to_func({'$or': "invalid value"}).source
     Traceback (most recent call last):
     ...
     InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
-    >>> filter(to_func({'$and':  [{"bubu": {"$lt": 3}}, {'bubu': {'$gt': 1}}]}), [{"bubu": i} for i in range(5)])
+    >>> filter(to_func({'$and': [{"bubu": {"$lt": 3}}, {'bubu': {'$gt': 1}}]}), [{"bubu": i} for i in range(5)])
     [{'bubu': 2}]
 
 * **$*nesting***::
@@ -485,11 +485,22 @@ Compiles down to a Django Q object tree::
     >>> print(to_Q({"myfield": 1}))
     (AND: ('myfield', 1))
 
+    >>> from test_app.models import MyModel
+    >>> MyModel.objects.clean_and_create([(i, i) for i in range(5)])
+    >>> MyModel.objects.filter(to_Q({"field1": 1}))
+    [<MyModel: field1=1, field2='1'>]
+
     >>> print(to_Q({"field1": 1, "field2": 2}))
     (AND: ('field2', 2), ('field1', 1))
 
+    >>> MyModel.objects.filter(to_Q({"field1": 1, "field2": 1}))
+    [<MyModel: field1=1, field2='1'>]
+
     >>> print(to_Q({"myfield": {"$in": [1, 2]}}))
     (AND: ('myfield__in', [1, 2]))
+
+    >>> MyModel.objects.filter(to_Q({"field1": {"$in": [1, 2]}}))
+    [<MyModel: field1=1, field2='1'>, <MyModel: field1=2, field2='2'>]
 
     >>> print(to_Q({"myfield": {"$in": {1: 2}}}))
     Traceback (most recent call last):
@@ -508,32 +519,54 @@ Arithmetic
     >>> print(to_Q({"myfield": {"$gt": 1}}))
     (AND: ('myfield__gt', 1))
 
+    >>> MyModel.objects.filter(to_Q({"field1": {"$gt": 2}}))
+    [<MyModel: field1=3, field2='3'>, <MyModel: field1=4, field2='4'>]
+
 * **$gte**::
 
     >>> print(to_Q({"myfield": {"$gte": 1}}))
     (AND: ('myfield__gte', 1))
+
+    >>> MyModel.objects.filter(to_Q({"field1": {"$gte": 2}}))
+    [<MyModel: field1=2, field2='2'>, <MyModel: field1=3, field2='3'>, <MyModel: field1=4, field2='4'>]
 
 * **$lt**::
 
     >>> print(to_Q({"myfield": {"$lt": 1}}))
     (AND: ('myfield__lt', 1))
 
+    >>> MyModel.objects.filter(to_Q({"field1": {"$lt": 1}}))
+    [<MyModel: field1=0, field2='0'>]
+
 * **$lte**::
 
     >>> print(to_Q({"myfield": {"$lte": 1}}))
     (AND: ('myfield__lte', 1))
 
+    >>> MyModel.objects.filter(to_Q({"field1": {"$lte": 1}}))
+    [<MyModel: field1=0, field2='0'>, <MyModel: field1=1, field2='1'>]
+
 * **$eq**::
 
     >>> print(to_Q({"myfield": {"$eq": 1}}))
     (AND: ('myfield', 1))
+
+    >>> MyModel.objects.filter(to_Q({"field1": 1}))
+    [<MyModel: field1=1, field2='1'>]
+
     >>> print(to_Q({"myfield": 1}))
     (AND: ('myfield', 1))
+
+    >>> MyModel.objects.filter(to_Q({"field1": {"$eq": 1}}))
+    [<MyModel: field1=1, field2='1'>]
 
 * **$ne**::
 
     >>> print(to_Q({"myfield": {"$ne": 1}}))
     (NOT (AND: ('myfield', 1)))
+
+    >>> MyModel.objects.filter(to_Q({"field1": {"$ne": 1}}))
+    [<MyModel: field1=0, field2='0'>, <MyModel: field1=2, field2='2'>, <MyModel: field1=3, field2='3'>, <MyModel: field1=4, field2='4'>]
 
 * **$mod**::
 
@@ -551,10 +584,16 @@ Containers
     >>> print(to_Q({"myfield": {"$in": (1, 2, 3)}}))
     (AND: ('myfield__in', (1, 2, 3)))
 
+    >>> MyModel.objects.filter(to_Q({"field1": {"$in": (1, 2)}}))
+    [<MyModel: field1=1, field2='1'>, <MyModel: field1=2, field2='2'>]
+
 * **$nin**::
 
     >>> print(to_Q({"myfield": {"$nin": [1, 2, 3]}}))
     (NOT (AND: ('myfield__in', [1, 2, 3])))
+
+    >>> MyModel.objects.filter(to_Q({"field1": {"$nin": (1, 2)}}))
+    [<MyModel: field1=0, field2='0'>, <MyModel: field1=3, field2='3'>, <MyModel: field1=4, field2='4'>]
 
 * **$size**::
 
@@ -585,10 +624,16 @@ Boolean operators
     >>> print(to_Q({'$or':  [{"bubu": {"$gt": 1}}, {'bubu': {'$lt': 2}}]}))
     (OR: ('bubu__gt', 1), ('bubu__lt', 2))
 
+    >>> MyModel.objects.filter(to_Q({'$or': [{"field1": {"$gt": 3}}, {'field1': {'$lt': 2}}]}))
+    [<MyModel: field1=0, field2='0'>, <MyModel: field1=1, field2='1'>, <MyModel: field1=4, field2='4'>]
+
 * **$and**::
 
     >>> print(to_Q({'$and':  [{"bubu": {"$gt": 1}}, {'bubu': {'$lt': 2}}]}))
     (AND: ('bubu__gt', 1), ('bubu__lt', 2))
+
+    >>> MyModel.objects.filter(to_Q({'$and': [{"field1": {"$gt": 1}}, {'field1': {'$lt': 3}}]}))
+    [<MyModel: field1=2, field2='2'>]
 
 * **$*nesting***::
 
@@ -603,6 +648,18 @@ Boolean operators
     ...     ]}
     ... ]}))
     (AND: ('bubu__gt', 1), (OR: ('bubu__lt', 2), (AND: ('bubu__lt', 3), ('bubu__lt', 4))))
+
+    >>> MyModel.objects.filter(to_Q({'$and': [
+    ...     {"field1": {"$gt": 1}},
+    ...     {'$or': [
+    ...         {'field2': {'$lt': 2}},
+    ...         {'$and': [
+    ...             {'field2': {'$lt': 5}},
+    ...             {'field2': {'$gt': 2}},
+    ...         ]}
+    ...     ]}
+    ... ]}))
+    [<MyModel: field1=3, field2='3'>, <MyModel: field1=4, field2='4'>]
 
 Regular expressions
 ```````````````````
@@ -634,6 +691,11 @@ Regular expressions
     Traceback (most recent call last):
     ...
     InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
+
+    >>> MyModel.objects.clean_and_create([(None, i) for i in string.ascii_letters])
+    >>> MyModel.objects.filter(to_Q({"field2": {"$regex": '[a-b]', "$options": 'i'}}))
+    [<MyModel: field1=None, field2='a'>, <MyModel: field1=None, field2='b'>, <MyModel: field1=None, field2='A'>, <MyModel: field1=None, field2='B'>]
+
 
 Extending (implementing a custom visitor)
 =========================================
