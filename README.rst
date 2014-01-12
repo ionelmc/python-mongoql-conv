@@ -26,9 +26,9 @@ Only supports flat operations. No subdocuments. It might work but results are un
 
 API:
 
-    * `mongoql_conv.to_string <#to_string>`_
-    * `mongoql_conv.to_func <#to_func>`_
-    * `mongoql_conv.django.to_Q <#to_Q>`_
+    * ``mongoql_conv.to_string``: to_string_
+    * ``mongoql_conv.to_func``: to_func_
+    * ``mongoql_conv.django.to_Q``: to_Q_
 
 
 to_string
