@@ -5,6 +5,7 @@ query $keywords, probably differs the result in subtle ways.
 It only supports querying flat structures: dicts with no lists or other dicts in
 them (aka subdocuments).
 """
+from __future__ import absolute_import
 from __future__ import print_function
 
 import linecache
@@ -22,6 +23,8 @@ from warnings import warn
 
 from six import reraise
 from six import with_metaclass
+
+__all__ = "InvalidQuery", "compile_to_string", "compile_to_func"
 
 NoneType = type(None)
 
@@ -73,11 +76,6 @@ Stripped = object()
 Missing = object()
 
 class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
-    def __init__(self, closure, object_name):
-        self.closure = closure
-        self.object_name = object_name
-
-
     validate_gt = validate_gte = validate_lt = validate_lte = validate_ne = validate_eq = staticmethod(require_value)
     validate_query = staticmethod(require(dict))
     validate_exists = staticmethod(require(object))
@@ -91,7 +89,7 @@ class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
             raise InvalidQuery('Invalid query part %r. You must have two items: divisor and remainder.' % value)
         return value
 
-    def validate_regex(self, value, field_name, context):
+    def validate_regex(self, value, field_name, context, acceptable_options=('s', 'x', 'm', 'i')):
         options = context.get('$options', Missing)
         regex = context.get('$regex', Missing)
         if Stripped in (options, regex):
@@ -110,10 +108,10 @@ class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
         if options is not Missing:
             require_string(options)
             for opt in options:
-                if opt not in ('s', 'x', 'm', 'i'):
+                if opt not in acceptable_options:
                     raise InvalidQuery(
-                        "Invalid query part %r. Unsupported regex option %r. Only 's', 'x', 'm', 'i' are supported !" % (
-                            value, opt
+                        "Invalid query part %r. Unsupported regex option %r. Only %s are supported !" % (
+                            value, opt, ', '.join(acceptable_options)
                         )
                     )
                 raw_options |= getattr(re, opt.upper())
@@ -162,6 +160,10 @@ class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
                 yield self.visit_eq(value, name, query)
 
 class ExprVisitor(BaseVisitor):
+    def __init__(self, closure, object_name):
+        self.closure = closure
+        self.object_name = object_name
+
     def visit_gt(self, value, field_name, context):
         return "%s[%r] > %r" % (self.object_name, field_name, value)
 
@@ -195,7 +197,7 @@ class ExprVisitor(BaseVisitor):
         return self.render_and([self.visit_query(part, field_name) for part in parts], field_name, context, operator)
 
     def visit_or(self, parts, field_name, context):
-        return self.visit_and(parts, field_name, context, operator=' or ')
+        return self.visit_and(parts, field_name, context, ' or ')
 
     def render_and(self, parts, field_name, context, operator=' and '):
         multiple = len(parts) > 1

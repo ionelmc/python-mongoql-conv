@@ -23,6 +23,14 @@ expresion, a function or a Django Q object tree to be used with a ORM query.
 
 Only supports flat operations. No subdocuments. It might work but results are undefined/buggy.
 
+
+API:
+
+    * `mongoql_conv.compile_to_string <#compile_to_string>`_
+    * `mongoql_conv.compile_to_func <#compile_to_func>`_
+    * `mongoql_conv.django.compile_to_Q <compile_to_Q <#compile_to_Q>`_
+
+
 compile_to_string
 =================
 
@@ -32,6 +40,10 @@ compile_to_string
 
     >>> compile_to_string({"myfield": 1})
     "row['myfield'] == 1"
+
+    >>> compile_to_string({"field1": 1, "field2": 2})
+    "(row['field2'] == 2) and (row['field1'] == 1)"
+
     >>> compile_to_string({"myfield": 1}, object_name='item')
     "item['myfield'] == 1"
 
@@ -402,6 +414,165 @@ Regular expressions
     ...
     InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
 
+compile_to_Q
+============
+
+Compiles down to a Django Q object tree::
+
+    >>> from mongoql_conv.django import compile_to_Q
+    >>> print(compile_to_Q({"myfield": 1}))
+    (AND: ('myfield', 1))
+
+    >>> print(compile_to_Q({"field1": 1, "field2": 2}))
+    (AND: ('field2', 2), ('field1', 1))
+
+    >>> print(compile_to_Q({"myfield": {"$in": [1, 2]}}))
+    (AND: ('myfield__in', [1, 2]))
+
+    >>> print(compile_to_Q({"myfield": {"$in": {1: 2}}}))
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
+
+
+Supported operators
+-------------------
+
+Arithmetic
+``````````
+
+* **$gt**::
+
+    >>> print(compile_to_Q({"myfield": {"$gt": 1}}))
+    (AND: ('myfield__gt', 1))
+
+* **$gte**::
+
+    >>> print(compile_to_Q({"myfield": {"$gte": 1}}))
+    (AND: ('myfield__gte', 1))
+
+* **$lt**::
+
+    >>> print(compile_to_Q({"myfield": {"$lt": 1}}))
+    (AND: ('myfield__lt', 1))
+
+* **$lte**::
+
+    >>> print(compile_to_Q({"myfield": {"$lte": 1}}))
+    (AND: ('myfield__lte', 1))
+
+* **$eq**::
+
+    >>> print(compile_to_Q({"myfield": {"$eq": 1}}))
+    (AND: ('myfield', 1))
+    >>> print(compile_to_Q({"myfield": 1}))
+    (AND: ('myfield', 1))
+
+* **$ne**::
+
+    >>> print(compile_to_Q({"myfield": {"$ne": 1}}))
+    (NOT (AND: ('myfield', 1)))
+
+* **$mod**::
+
+    >>> print(compile_to_Q({"myfield": {"$mod": [2, 1]}}))
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: DjangoVisitor doesn't support operator '$mod'
+
+
+Containers
+``````````
+
+* **$in**::
+
+    >>> print(compile_to_Q({"myfield": {"$in": (1, 2, 3)}}))
+    (AND: ('myfield__in', (1, 2, 3)))
+
+* **$nin**::
+
+    >>> print(compile_to_Q({"myfield": {"$nin": [1, 2, 3]}}))
+    (NOT (AND: ('myfield__in', [1, 2, 3])))
+
+* **$size**::
+
+    >>> print(compile_to_Q({"myfield": {"$size": 3}}))
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: DjangoVisitor doesn't support operator '$size'
+
+* **$all**::
+
+    >>> print(compile_to_Q({"myfield": {"$all": [1, 2, 3]}}))
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: DjangoVisitor doesn't support operator '$all'
+
+* **$exists**::
+
+    >>> print(compile_to_Q({"myfield": {"$exists": True}}))
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: DjangoVisitor doesn't support operator '$exists'
+
+Boolean operators
+`````````````````
+
+* **$or**::
+
+    >>> print(compile_to_Q({'$or':  [{"bubu": {"$gt": 1}}, {'bubu': {'$lt': 2}}]}))
+    (OR: ('bubu__gt', 1), ('bubu__lt', 2))
+
+* **$and**::
+
+    >>> print(compile_to_Q({'$and':  [{"bubu": {"$gt": 1}}, {'bubu': {'$lt': 2}}]}))
+    (AND: ('bubu__gt', 1), ('bubu__lt', 2))
+
+* **$*nesting***::
+
+    >>> print(compile_to_Q({'$and': [
+    ...     {"bubu": {"$gt": 1}},
+    ...     {'$or': [
+    ...         {'bubu': {'$lt': 2}},
+    ...         {'$and': [
+    ...             {'bubu': {'$lt': 3}},
+    ...             {'bubu': {'$lt': 4}},
+    ...         ]}
+    ...     ]}
+    ... ]}))
+    (AND: ('bubu__gt', 1), (OR: ('bubu__lt', 2), (AND: ('bubu__lt', 3), ('bubu__lt', 4))))
+
+Regular expressions
+```````````````````
+
+* **$regex**::
+
+    >>> print(compile_to_Q({"myfield": {"$regex": 'a'}}))
+    (AND: ('myfield__regex', 'a'))
+
+    >>> print(compile_to_Q({"myfield": {"$regex": 'a', "$options": 'i'}}))
+    (AND: ('myfield__iregex', 'a'))
+
+    >>> print(compile_to_Q({"myfield": {"$regex": 'junk('}}))
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid regular expression 'junk(': unbalanced parenthesis
+
+    >>> print(compile_to_Q({"myfield": {"$regex": 'a', 'junk': 'junk'}}))
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
+
+    >>> print(compile_to_Q({"bubu": {"$regex": ".*", "$options": "mxs"}}))
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part 'mxs'. Unsupported regex option 'm'. Only i are supported !
+
+    >>> print(compile_to_Q({"bubu": {"$options": "i"}}))
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
+
 Extending (implementing a custom visitor)
 =========================================
 
@@ -409,9 +580,11 @@ There are few requirements for a visitor. Fist, you need to be able to render bo
 
     >>> from mongoql_conv import BaseVisitor
     >>> class MyVisitor(BaseVisitor):
+    ...     def __init__(self, object_name):
+    ...         self.object_name = object_name
     ...     def visit_foobar(self, value, field_name, context):
     ...         return "foobar(%s[%r], %r)" % (self.object_name, field_name, value)
-    >>> MyVisitor(None, 'obj').visit({'field': {'$foobar': 'test'}})
+    >>> MyVisitor('obj').visit({'field': {'$foobar': 'test'}})
     Traceback (most recent call last):
     ...
     TypeError: Can't instantiate abstract class MyVisitor with abstract methods render_and
@@ -419,16 +592,18 @@ There are few requirements for a visitor. Fist, you need to be able to render bo
 This is the minimal code to have a custom generator::
 
     >>> class MyVisitor(BaseVisitor):
+    ...     def __init__(self, object_name):
+    ...         self.object_name = object_name
     ...     def visit_foobar(self, value, field_name, context):
     ...         return "foobar(%s[%r], %r)" % (self.object_name, field_name, value)
     ...     def render_and(self, parts, field_name, context):
     ...         return ' & '.join(parts)
-    >>> MyVisitor(None, 'obj').visit({'field': {'$foobar': 'test'}})
+    >>> MyVisitor('obj').visit({'field': {'$foobar': 'test'}})
     "foobar(obj['field'], 'test')"
 
 Ofcourse, it won't do much::
 
-    >>> MyVisitor(None, 'obj').visit({'field': {'$ne': 'test'}})
+    >>> MyVisitor('obj').visit({'field': {'$ne': 'test'}})
     Traceback (most recent call last):
     ...
     InvalidQuery: MyVisitor doesn't support operator '$ne'
