@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Komodo Project File - DO NOT EDIT -->
+<project id="258da88b-31b1-469c-8e17-18b093234939" kpf_version="5" name="python-mongoql-conv.komodoproject">
+<preference-set idref="258da88b-31b1-469c-8e17-18b093234939" id="project" preftype="project">
+  <string relative="path" id="import_dirname"></string>
+  <string id="import_exclude_matches">*.*~;*.bak;*.tmp;CVS;.#*;*.pyo;*.pyc;.svn;.git;.hg;.bzr;*%25*;tmp*.html;.DS_Store;*.swp;*.kpf;*.komodoproject;.komodotools;__pycache__;.tox;.ve;build;dist;.coverage*</string>
+<preference-set id="testPlans">
+<preference-set id="New test plan #1">
+  <string id="command_line">python -m doctest</string>
+  <string relative="url" id="directory"></string>
+  <string id="language">Python - unittest</string>
+</preference-set>
+</preference-set>
+</preference-set>
+</project>
