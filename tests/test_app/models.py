@@ -16,4 +16,4 @@ class MyModel(models.Model):
     objects = MyManager()
 
     def __str__(self):
-        return u"field1=%s, field2='%s'" % (self.field1, self.field2)
+        return "field1=%s, field2='%s'" % (self.field1, self.field2)

@@ -233,8 +233,8 @@ class ExprVisitor(BaseVisitor):
         return '%s[%r] %% %s == %s' % (self.object_name, field_name, divisor, remainder)
 
     def visit_exists(self, value, field_name, context):
-        return '%s%s.has_key(%r)' % (
-            '' if value else 'not ', self.object_name, field_name,
+        return '%r %sin %s' % (
+            field_name, '' if value else 'not ', self.object_name,
         )
 
 def to_string(query, closure=None, object_name='row'):

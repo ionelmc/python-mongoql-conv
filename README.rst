@@ -152,9 +152,9 @@ Containers
 * **$exists**::
 
     >>> to_string({"myfield": {"$exists": True}})
-    "row.has_key('myfield')"
+    "'myfield' in row"
     >>> to_string({"myfield": {"$exists": False}})
-    "not row.has_key('myfield')"
+    "'myfield' not in row"
 
 Boolean operators
 `````````````````
@@ -239,13 +239,13 @@ to_func
     >>> to_func({"myfield": 1}).source
     "lambda item: (item['myfield'] == 1) # compiled from {'myfield': 1}"
 
-    >>> filter(to_func({"myfield": 1}), [{"myfield": 1}, {"myfield": 2}])
+    >>> list(filter(to_func({"myfield": 1}), [{"myfield": 1}, {"myfield": 2}]))
     [{'myfield': 1}]
 
     >>> to_func({"myfield": {"$in": [1, 2]}}).source
     "lambda item, var0={1, 2}: (item['myfield'] in var0) # compiled from {'myfield': {'$in': [1, 2]}}"
 
-    >>> filter(to_func({"myfield": {"$in": [1, 2]}}), [{"myfield": 1}, {"myfield": 2}])
+    >>> list(filter(to_func({"myfield": {"$in": [1, 2]}}), [{"myfield": 1}, {"myfield": 2}]))
     [{'myfield': 1}, {'myfield': 2}]
 
     >>> to_func({"myfield": {"$in": {1: 2}}}).source
@@ -269,7 +269,7 @@ Arithmetic
     ...
     InvalidQuery: Invalid query part [1]. Expected value of type int, float, str, unicode, bool or None.
 
-    >>> filter(to_func({"myfield": {"$gt": 1}}), [{"myfield": i} for i in range(5)])
+    >>> list(filter(to_func({"myfield": {"$gt": 1}}), [{"myfield": i} for i in range(5)]))
     [{'myfield': 2}, {'myfield': 3}, {'myfield': 4}]
 
 
@@ -278,7 +278,7 @@ Arithmetic
     >>> to_func({"myfield": {"$gte": 1}}).source
     "lambda item: (item['myfield'] >= 1) # compiled from {'myfield': {'$gte': 1}}"
 
-    >>> filter(to_func({"myfield": {"$gte": 2}}), [{"myfield": i} for i in range(5)])
+    >>> list(filter(to_func({"myfield": {"$gte": 2}}), [{"myfield": i} for i in range(5)]))
     [{'myfield': 2}, {'myfield': 3}, {'myfield': 4}]
 
 * **$lt**::
@@ -286,7 +286,7 @@ Arithmetic
     >>> to_func({"myfield": {"$lt": 1}}).source
     "lambda item: (item['myfield'] < 1) # compiled from {'myfield': {'$lt': 1}}"
 
-    >>> filter(to_func({"myfield": {"$lt": 1}}), [{"myfield": i} for i in range(5)])
+    >>> list(filter(to_func({"myfield": {"$lt": 1}}), [{"myfield": i} for i in range(5)]))
     [{'myfield': 0}]
 
 * **$lte**::
@@ -294,7 +294,7 @@ Arithmetic
     >>> to_func({"myfield": {"$lte": 1}}).source
     "lambda item: (item['myfield'] <= 1) # compiled from {'myfield': {'$lte': 1}}"
 
-    >>> filter(to_func({"myfield": {"$lte": 1}}), [{"myfield": i} for i in range(5)])
+    >>> list(filter(to_func({"myfield": {"$lte": 1}}), [{"myfield": i} for i in range(5)]))
     [{'myfield': 0}, {'myfield': 1}]
 
 * **$eq**::
@@ -304,7 +304,7 @@ Arithmetic
     >>> to_func({"myfield": 1}).source
     "lambda item: (item['myfield'] == 1) # compiled from {'myfield': 1}"
 
-    >>> filter(to_func({"myfield": {"$eq": 2}}), [{"myfield": i} for i in range(5)])
+    >>> list(filter(to_func({"myfield": {"$eq": 2}}), [{"myfield": i} for i in range(5)]))
     [{'myfield': 2}]
 
 * **$ne**::
@@ -312,7 +312,7 @@ Arithmetic
     >>> to_func({"myfield": {"$ne": 1}}).source
     "lambda item: (item['myfield'] != 1) # compiled from {'myfield': {'$ne': 1}}"
 
-    >>> filter(to_func({"myfield": {"$ne": 2}}), [{"myfield": i} for i in range(5)])
+    >>> list(filter(to_func({"myfield": {"$ne": 2}}), [{"myfield": i} for i in range(5)]))
     [{'myfield': 0}, {'myfield': 1}, {'myfield': 3}, {'myfield': 4}]
 
 * **$mod**::
@@ -332,7 +332,7 @@ Arithmetic
     >>> to_func({"myfield": {"$mod": (2, 1)}}).source
     "lambda item: (item['myfield'] % 2 == 1) # compiled from {'myfield': {'$mod': (2, 1)}}"
 
-    >>> filter(to_func({"myfield": {"$mod": (2, 1)}}), [{"myfield": i} for i in range(5)])
+    >>> list(filter(to_func({"myfield": {"$mod": (2, 1)}}), [{"myfield": i} for i in range(5)]))
     [{'myfield': 1}, {'myfield': 3}]
 
 Containers
@@ -343,7 +343,7 @@ Containers
     >>> to_func({"myfield": {"$in": (1, 2, 3)}}).source
     "lambda item, var0={1, 2, 3}: (item['myfield'] in var0) # compiled from {'myfield': {'$in': (1, 2, 3)}}"
 
-    >>> filter(to_func({"myfield": {"$in": (1, 2, 3)}}), [{"myfield": i} for i in range(5)])
+    >>> list(filter(to_func({"myfield": {"$in": (1, 2, 3)}}), [{"myfield": i} for i in range(5)]))
     [{'myfield': 1}, {'myfield': 2}, {'myfield': 3}]
 
 * **$nin**::
@@ -356,7 +356,7 @@ Containers
     ...
     InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
 
-    >>> filter(to_func({"myfield": {"$nin": (1, 2, 3)}}), [{"myfield": i} for i in range(5)])
+    >>> list(filter(to_func({"myfield": {"$nin": (1, 2, 3)}}), [{"myfield": i} for i in range(5)]))
     [{'myfield': 0}, {'myfield': 4}]
 
 * **$size**::
@@ -369,10 +369,10 @@ Containers
     ...
     InvalidQuery: Invalid query part '3'. Expected one of: int, long.
 
-    >>> filter(to_func({"myfield": {"$size": 3}}), [{"myfield": 'x'*i} for i in range(5)])
+    >>> list(filter(to_func({"myfield": {"$size": 3}}), [{"myfield": 'x'*i} for i in range(5)]))
     [{'myfield': 'xxx'}]
 
-    >>> filter(to_func({"myfield": {"$size": 3}}), [{"myfield": list(range(i))} for i in range(5)])
+    >>> list(filter(to_func({"myfield": {"$size": 3}}), [{"myfield": list(range(i))} for i in range(5)]))
     [{'myfield': [0, 1, 2]}]
 
 * **$all**::
@@ -385,18 +385,18 @@ Containers
     ...
     InvalidQuery: Invalid query part 1. Expected one of: set, list, tuple, frozenset.
 
-    >>> filter(to_func({"myfield": {"$all": [3, 4]}}), [{"myfield": list(range(i))} for i in range(7)])
+    >>> list(filter(to_func({"myfield": {"$all": [3, 4]}}), [{"myfield": list(range(i))} for i in range(7)]))
     [{'myfield': [0, 1, 2, 3, 4]}, {'myfield': [0, 1, 2, 3, 4, 5]}]
 
 * **$exists**::
 
     >>> to_func({"myfield": {"$exists": True}}).source
-    "lambda item: (item.has_key('myfield')) # compiled from {'myfield': {'$exists': True}}"
+    "lambda item: ('myfield' in item) # compiled from {'myfield': {'$exists': True}}"
 
     >>> to_func({"myfield": {"$exists": False}}).source
-    "lambda item: (not item.has_key('myfield')) # compiled from {'myfield': {'$exists': False}}"
+    "lambda item: ('myfield' not in item) # compiled from {'myfield': {'$exists': False}}"
 
-    >>> filter(to_func({"$or": [{"field1": {"$exists": True}}, {"field2": {"$exists": False}}]}), [{"field%s" % i: i} for i in range(5)])
+    >>> list(filter(to_func({"$or": [{"field1": {"$exists": True}}, {"field2": {"$exists": False}}]}), [{"field%s" % i: i} for i in range(5)]))
     [{'field0': 0}, {'field1': 1}, {'field3': 3}, {'field4': 4}]
 
 Boolean operators
@@ -412,7 +412,7 @@ Boolean operators
     ...
     InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
 
-    >>> filter(to_func({'$or': [{"bubu": {"$gt": 3}}, {'bubu': {'$lt': 2}}]}), [{"bubu": i} for i in range(5)])
+    >>> list(filter(to_func({'$or': [{"bubu": {"$gt": 3}}, {'bubu': {'$lt': 2}}]}), [{"bubu": i} for i in range(5)]))
     [{'bubu': 0}, {'bubu': 1}, {'bubu': 4}]
 
 * **$and**::
@@ -423,7 +423,7 @@ Boolean operators
     Traceback (most recent call last):
     ...
     InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
-    >>> filter(to_func({'$and': [{"bubu": {"$lt": 3}}, {'bubu': {'$gt': 1}}]}), [{"bubu": i} for i in range(5)])
+    >>> list(filter(to_func({'$and': [{"bubu": {"$lt": 3}}, {'bubu': {'$gt': 1}}]}), [{"bubu": i} for i in range(5)]))
     [{'bubu': 2}]
 
 * **$*nesting***::
@@ -472,7 +472,7 @@ Regular expressions
     InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
 
     >>> import string
-    >>> filter(to_func({"myfield": {"$regex": '[a-c]', "$options": 'i'}}), [{"myfield": i} for i in string.ascii_letters])
+    >>> list(filter(to_func({"myfield": {"$regex": '[a-c]', "$options": 'i'}}), [{"myfield": i} for i in string.ascii_letters]))
     [{'myfield': 'a'}, {'myfield': 'b'}, {'myfield': 'c'}, {'myfield': 'A'}, {'myfield': 'B'}, {'myfield': 'C'}]
 
 
