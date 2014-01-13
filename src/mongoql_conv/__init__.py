@@ -201,7 +201,7 @@ class ExprVisitor(BaseVisitor):
 
     def render_and(self, parts, field_name, context, operator=' and '):
         multiple = len(parts) > 1
-        return operator.join("(%s)" % part if multiple else part for part in parts)
+        return operator.join("(%s)" % part if multiple else part for part in parts) or 'True'
 
     def visit_regex(self, value, field_name, context):
         if value is Stripped:

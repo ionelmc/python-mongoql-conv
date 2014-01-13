@@ -53,6 +53,9 @@ to_string
     >>> to_string({"myfield": 1})
     "row['myfield'] == 1"
 
+    >>> to_string({})
+    'True'
+
     >>> to_string({"field1": 1, "field2": 2})
     "(row['field2'] == 2) and (row['field1'] == 1)"
 
@@ -67,6 +70,8 @@ to_string
     ...
     InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
 
+    >>> to_string({"myfield": {"$and": []}})
+    'True'
 
 Supported operators
 -------------------
@@ -251,8 +256,14 @@ to_func
     >>> to_func({"myfield": 1}).source
     "lambda item: (item['myfield'] == 1) # compiled from {'myfield': 1}"
 
+    >>> to_func({}).source
+    'lambda item: (True) # compiled from {}'
+
     >>> list(filter(to_func({"myfield": 1}), [{"myfield": 1}, {"myfield": 2}]))
     [{'myfield': 1}]
+
+    >>> list(filter(to_func({}), [{"myfield": 1}, {"myfield": 2}]))
+    [{'myfield': 1}, {'myfield': 2}]
 
     >>> to_func({"myfield": {"$in": [1, 2]}}).source
     "lambda item, var0={1, 2}: (item['myfield'] in var0) # compiled from {'myfield': {'$in': [1, 2]}}"
@@ -264,6 +275,12 @@ to_func
     Traceback (most recent call last):
     ...
     InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
+
+    >>> to_func({"myfield": {"$and": []}}).source
+    "lambda item: (True) # compiled from {'myfield': {'$and': []}}"
+
+    >>> list(filter(to_func({"myfield": {"$and": []}}), [{"myfield": 1}, {"myfield": 2}]))
+    [{'myfield': 1}, {'myfield': 2}]
 
 
 Supported operators
@@ -497,6 +514,9 @@ Compiles down to a Django Q object tree::
     >>> print(to_Q({"myfield": 1}))
     (AND: ('myfield', 1))
 
+    >>> print(to_Q({}))
+    (AND: )
+
     >>> from test_app.models import MyModel
     >>> MyModel.objects.clean_and_create([(i, i) for i in range(5)])
     >>> MyModel.objects.filter(to_Q({"field1": 1}))
@@ -518,6 +538,12 @@ Compiles down to a Django Q object tree::
     Traceback (most recent call last):
     ...
     InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
+
+    >>> print(to_Q({"myfield": {"$and": []}}))
+    (AND: )
+
+    >>> MyModel.objects.filter(to_Q({"field1": {"$and": []}}))
+    [<MyModel: field1=0, field2='0'>, <MyModel: field1=1, field2='1'>, <MyModel: field1=2, field2='2'>, <MyModel: field1=3, field2='3'>, <MyModel: field1=4, field2='4'>]
 
 
 Supported operators

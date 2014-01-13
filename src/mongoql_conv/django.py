@@ -36,13 +36,13 @@ class DjangoVisitor(BaseVisitor):
         return ~self.visit_in(value, field_name, context)
 
     def visit_and(self, parts, field_name, context, reducer=iand):
-        return reduce(reducer, [self.visit_query(part, field_name) for part in parts])
+        return reduce(reducer, [self.visit_query(part, field_name) for part in parts]) if parts else Q()
 
     def visit_or(self, parts, field_name, context):
         return self.visit_and(parts, field_name, context, partial(ior))
 
     def render_and(self, parts, field_name, context):
-        return reduce(iand, parts)
+        return reduce(iand, parts) if parts else Q()
 
     def validate_regex(self, value, field_name, context, acceptable_options=('i',)):
         return super(DjangoVisitor, self).validate_regex(value, field_name, context, acceptable_options)
