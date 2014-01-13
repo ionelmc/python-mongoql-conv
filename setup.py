@@ -18,6 +18,7 @@ setup(
     package_dir = {'':'src'},
     include_package_data = True,
     zip_safe = False,
+    keywords = ['mongo', 'mongodb', 'django', 'orm', 'query', 'conversion', 'converter'],
     classifiers = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
