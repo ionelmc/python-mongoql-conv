@@ -5,7 +5,7 @@ import os
 
 setup(
     name = "mongoql-conv",
-    version = "0.1.0",
+    version = "0.1.1",
     url = 'https://github.com/ionelmc/python-mongoql-conv',
     download_url = '',
     license = 'BSD',
@@ -34,5 +34,10 @@ setup(
     ],
     install_requires=[
         'six',
-    ]
+    ],
+    extras_require={
+        'django': [
+            'Django',
+        ]
+    }
 )
