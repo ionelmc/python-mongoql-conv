@@ -214,17 +214,17 @@ Regular expressions
 * **$regex**::
 
     >>> to_string({"myfield": {"$regex": 'a'}})
-    "re.match('a', row['myfield'], 0)"
+    "re.search('a', row['myfield'], 0)"
 
     >>> to_string({"bubu": {"$regex": ".*x"}}, object_name='X')
-    "re.match('.*x', X['bubu'], 0)"
+    "re.search('.*x', X['bubu'], 0)"
 
     >>> to_string({"myfield": {"$regex": 'a', "$options": 'i'}})
-    "re.match('a', row['myfield'], 2)"
+    "re.search('a', row['myfield'], 2)"
 
     >>> closure = {}
     >>> to_string({"bubu": {"$regex": ".*x"}}, closure=closure), closure
-    ("var0.match(row['bubu'])", {'var0': "re.compile('.*x', 0)"})
+    ("var0.search(row['bubu'])", {'var0': "re.compile('.*x', 0)"})
 
     >>> to_string({"myfield": {"$regex": 'junk('}})
     Traceback (most recent call last):
@@ -475,10 +475,10 @@ Regular expressions
 * **$regex**::
 
     >>> to_func({"myfield": {"$regex": 'a'}}).source
-    "lambda item, var0=re.compile('a', 0): (var0.match(item['myfield'])) # compiled from {'myfield': {'$regex': 'a'}}"
+    "lambda item, var0=re.compile('a', 0): (var0.search(item['myfield'])) # compiled from {'myfield': {'$regex': 'a'}}"
 
     >>> to_func({"myfield": {"$regex": 'a', "$options": 'i'}}).source
-    "lambda item, var0=re.compile('a', 2): (var0.match(item['myfield'])) # compiled from {'myfield': {'$options': 'i', '$regex': 'a'}}"
+    "lambda item, var0=re.compile('a', 2): (var0.search(item['myfield'])) # compiled from {'myfield': {'$options': 'i', '$regex': 'a'}}"
 
     >>> to_func({"myfield": {"$regex": 'junk('}}).source
     Traceback (most recent call last):
@@ -730,9 +730,9 @@ Regular expressions
     ...
     InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
 
-    >>> MyModel.objects.clean_and_create([(None, i) for i in string.ascii_letters])
+    >>> MyModel.objects.clean_and_create([(None, "prefix__"+i) for i in string.ascii_letters])
     >>> MyModel.objects.filter(to_Q({"field2": {"$regex": '[a-b]', "$options": 'i'}}))
-    [<MyModel: field1=None, field2='a'>, <MyModel: field1=None, field2='b'>, <MyModel: field1=None, field2='A'>, <MyModel: field1=None, field2='B'>]
+    [<MyModel: field1=None, field2='prefix__a'>, <MyModel: field1=None, field2='prefix__b'>, <MyModel: field1=None, field2='prefix__A'>, <MyModel: field1=None, field2='prefix__B'>]
 
 
 Extending (implementing a custom visitor)

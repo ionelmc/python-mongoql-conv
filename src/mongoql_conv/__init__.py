@@ -212,11 +212,11 @@ class ExprVisitor(BaseVisitor):
             regex, options = value
 
             if self.closure is None:
-                return "re.match(%r, %s[%r], %r)" % (regex, self.object_name, field_name, options)
+                return "re.search(%r, %s[%r], %r)" % (regex, self.object_name, field_name, options)
             else:
                 var_name = "var%s" % len(self.closure)
                 self.closure[var_name] = "re.compile(%r, %r)" % (regex, options)
-                return '%s.match(%s[%r])' % (var_name, self.object_name, field_name)
+                return '%s.search(%s[%r])' % (var_name, self.object_name, field_name)
     visit_options = visit_regex
 
     def visit_size(self, value, field_name, context):
