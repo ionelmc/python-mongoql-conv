@@ -236,6 +236,9 @@ Regular expressions
     ...
     InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
 
+    >>> to_string({"myfield": {"$regex": 'a', '$nin': ['aaa']}})
+    "(re.search('a', row['myfield'], 0)) and (row['myfield'] not in {'aaa'})"
+
     >>> to_string({"bubu": {"$regex": ".*", "$options": "junk"}})
     Traceback (most recent call last):
     ...
@@ -478,7 +481,7 @@ Regular expressions
     "lambda item, var0=re.compile('a', 0): (var0.search(item['myfield'])) # compiled from {'myfield': {'$regex': 'a'}}"
 
     >>> to_func({"myfield": {"$regex": 'a', "$options": 'i'}}).source
-    "lambda item, var0=re.compile('a', 2): (var0.search(item['myfield'])) # compiled from {'myfield': {'$options': 'i', '$regex': 'a'}}"
+    "lambda item, var0=re.compile('a', 2): (var0.search(item['myfield'])) # compiled from {'myfield': {...}}"
 
     >>> to_func({"myfield": {"$regex": 'junk('}}).source
     Traceback (most recent call last):
@@ -489,6 +492,9 @@ Regular expressions
     Traceback (most recent call last):
     ...
     InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
+
+    >>> to_func({"myfield": {"$regex": 'a', '$nin': ['aaa']}}).source
+    "lambda item, var1={'aaa'}, var0=re.compile('a', 0): ((var0.search(item['myfield'])) and (item['myfield'] not in var1)) # compiled from {'myfield': {...}}"
 
     >>> to_func({"bubu": {"$regex": ".*", "$options": "junk"}}).source
     Traceback (most recent call last):
@@ -503,6 +509,28 @@ Regular expressions
     >>> import string
     >>> list(filter(to_func({"myfield": {"$regex": '[a-c]', "$options": 'i'}}), [{"myfield": i} for i in string.ascii_letters]))
     [{'myfield': 'a'}, {'myfield': 'b'}, {'myfield': 'c'}, {'myfield': 'A'}, {'myfield': 'B'}, {'myfield': 'C'}]
+
+    >>> list(filter(to_func({"myfield": {"$regex": '[a-c]', "$nin": ['c']}}), [{"myfield": i} for i in string.ascii_letters]))
+    [{'myfield': 'a'}, {'myfield': 'b'}]
+
+    >>> total = len(string.ascii_letters)
+    >>> 2 * len(list(filter(
+    ...     to_func({"myfield": {"$regex": '[a-z]'}}),
+    ...     [{"myfield": i} for i in string.ascii_letters]
+    ... ))) == total
+    True
+
+    >>> len(list(filter(
+    ...     to_func({"myfield": {"$regex": '[a-z]', '$options': 'i'}}),
+    ...     [{"myfield": i} for i in string.ascii_letters]
+    ... ))) == total
+    True
+
+    >>> len(list(filter(
+    ...     to_func({"myfield": {"$regex": '[^\d]'}}),
+    ...     [{"myfield": i} for i in string.ascii_letters]
+    ... ))) == total
+    True
 
 
 to_Q
@@ -720,6 +748,9 @@ Regular expressions
     ...
     InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
 
+    >>> print(to_Q({"myfield": {"$regex": 'a', '$nin': ['aaa']}}))
+    (AND: ('myfield__regex', 'a'), (NOT (AND: ('myfield__in', ['aaa']))))
+
     >>> print(to_Q({"bubu": {"$regex": ".*", "$options": "mxs"}}))
     Traceback (most recent call last):
     ...
@@ -733,6 +764,20 @@ Regular expressions
     >>> MyModel.objects.clean_and_create([(None, "prefix__"+i) for i in string.ascii_letters])
     >>> MyModel.objects.filter(to_Q({"field2": {"$regex": '[a-b]', "$options": 'i'}}))
     [<MyModel: field1=None, field2='prefix__a'>, <MyModel: field1=None, field2='prefix__b'>, <MyModel: field1=None, field2='prefix__A'>, <MyModel: field1=None, field2='prefix__B'>]
+
+    >>> MyModel.objects.filter(to_Q({"field2": {"$regex": '[a-c]', "$nin": ['prefix__c']}}))
+    [<MyModel: field1=None, field2='prefix__a'>, <MyModel: field1=None, field2='prefix__b'>]
+
+    >>> total = MyModel.objects.count()
+
+    >>> total == 2 * MyModel.objects.filter(to_Q({"field2": {"$regex": '__[a-z]'}})).count()
+    True
+
+    >>> total == MyModel.objects.filter(to_Q({"field2": {"$regex": '__[a-z]', '$options': 'i'}})).count()
+    True
+
+    >>> total == MyModel.objects.filter(to_Q({"field2": {"$regex": '[^\d]'}})).count()
+    True
 
 
 Extending (implementing a custom visitor)

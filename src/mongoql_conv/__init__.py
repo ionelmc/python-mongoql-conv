@@ -96,7 +96,7 @@ class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
         if Stripped in (options, regex):
             return Stripped
 
-        extra_keys = set(context) - {'$options', '$regex'}
+        extra_keys = set(i for i in context if not i.startswith('$'))
         if extra_keys:
             raise InvalidQuery('Invalid query part %r. You can only have `$options` with `$regex`.' % ', '.join(
                 repr(k) for k in extra_keys
