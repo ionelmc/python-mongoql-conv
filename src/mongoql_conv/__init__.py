@@ -11,14 +11,10 @@ from __future__ import print_function
 import linecache
 import re
 import sys
-import tempfile
 import weakref
 import zlib
 from abc import ABCMeta
 from abc import abstractmethod
-from collections import Iterable
-from collections import Sized
-from functools import wraps
 from warnings import warn
 
 from six import reraise
@@ -28,8 +24,10 @@ __all__ = "InvalidQuery", "to_string", "to_func"
 
 NoneType = type(None)
 
+
 class InvalidQuery(Exception):
-    pass # pragma: no cover
+    pass  # pragma: no cover
+
 
 def validated_method(validator_name, func):
     def validated_method_wrapper(self, value, *args, **kwargs):
@@ -39,6 +37,7 @@ def validated_method(validator_name, func):
             warn("Missing validator %s in %s" % (validator_name, type(self).__name__))
         return func(self, value, *args, **kwargs)
     return validated_method_wrapper
+
 
 def validator_metaclass(base=type):
     return type(
@@ -51,6 +50,7 @@ def validator_metaclass(base=type):
             for name, func in namespace.items()
         })}
     )
+
 
 def require(*types):
     def require_(value, *args, **kwargs):
@@ -74,6 +74,7 @@ else:
 Skip = object()
 Stripped = object()
 Missing = object()
+
 
 class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
     validate_gt = validate_gte = validate_lt = validate_lte = validate_ne = validate_eq = staticmethod(require_value)
@@ -127,11 +128,11 @@ class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
 
     @abstractmethod
     def visit_eq(self, value, field_name, context):
-        pass # pragma: no cover
+        pass  # pragma: no cover
 
     @abstractmethod
     def render_and(self, parts):
-        pass # pragma: no cover
+        pass  # pragma: no cover
 
     def visit(self, query):
         return self.visit_query(query)
@@ -158,6 +159,7 @@ class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
                 yield self.visit_query(value, name, query)
             else:
                 yield self.visit_eq(value, name, query)
+
 
 class ExprVisitor(BaseVisitor):
     def __init__(self, closure, object_name):
@@ -237,9 +239,11 @@ class ExprVisitor(BaseVisitor):
             field_name, '' if value else 'not ', self.object_name,
         )
 
+
 def to_string(query, closure=None, object_name='row'):
     visitor = ExprVisitor(closure, object_name)
     return visitor.visit(query)
+
 
 def to_func(query, use_arguments=True):
     closure = {} if use_arguments else None
