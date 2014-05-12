@@ -2,21 +2,21 @@
     python-mongoql-conv
 ===========================
 
-.. image:: https://secure.travis-ci.org/ionelmc/python-mongoql-conv.png?branch=master
+.. image:: http://img.shields.io/travis/ionelmc/python-mongoql-conv.png
     :alt: Build Status
-    :target: http://travis-ci.org/ionelmc/python-mongoql-conv
+    :target: https://travis-ci.org/ionelmc/python-mongoql-conv
 
-.. image:: https://coveralls.io/repos/ionelmc/python-mongoql-conv/badge.png?branch=master
+.. image:: http://img.shields.io/coveralls/ionelmc/python-mongoql-conv.png
     :alt: Coverage Status
     :target: https://coveralls.io/r/ionelmc/python-mongoql-conv
 
-.. image:: https://badge.fury.io/py/mongoql-conv.png
+.. image:: http://img.shields.io/pypi/v/mongoql-conv.png
     :alt: PYPI Package
     :target: https://pypi.python.org/pypi/mongoql-conv
 
-.. image:: https://d2weczhvl823v0.cloudfront.net/ionelmc/python-mongoql-conv/trend.png
-    :alt: Bitdeli badge
-    :target: https://bitdeli.com/free
+.. image:: http://img.shields.io/pypi/dm/mongoql-conv.png
+    :alt: PYPI Package
+    :target: https://pypi.python.org/pypi/mongoql-conv
 
 Library to convert those MongoDB queries to something else, like a python
 expresion, a function or a Django Q object tree to be used with a ORM query.
