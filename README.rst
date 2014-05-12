@@ -533,6 +533,294 @@ Regular expressions
     True
 
 
+to_func (lax mode)
+==================
+
+::
+
+    >>> from mongoql_conv import LaxNone
+    >>> LaxNone < 1, LaxNone > 1, LaxNone == 0, LaxNone < 0, LaxNone > 0
+    (False, False, False, False, False)
+
+    >>> from mongoql_conv import to_func
+
+    >>> to_func({"myfield": 1}, lax=True).source
+    "lambda item: (item.get('myfield', LaxNone) == 1) # compiled from {'myfield': 1}"
+
+    >>> to_func({}, lax=True).source
+    'lambda item: (True) # compiled from {}'
+
+    >>> list(filter(to_func({"bogus": 1}, lax=True), [{"myfield": 1}, {"myfield": 2}]))
+    []
+
+    >>> list(filter(to_func({}, lax=True), [{"myfield": 1}, {"myfield": 2}]))
+    [{'myfield': 1}, {'myfield': 2}]
+
+    >>> to_func({"myfield": {"$in": [1, 2]}}, lax=True).source
+    "lambda item, var0={1, 2}: ('myfield' in item and item.get('myfield', LaxNone) in var0) # compiled from {'myfield': {'$in': [1, 2]}}"
+
+    >>> list(filter(to_func({"bogus": {"$in": [1, 2]}}, lax=True), [{"myfield": 1}, {"myfield": 2}]))
+    []
+
+    >>> to_func({"myfield": {"$in": {1: 2}}}, lax=True).source
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
+
+    >>> to_func({"myfield": {"$and": []}}, lax=True).source
+    "lambda item: (True) # compiled from {'myfield': {'$and': []}}"
+
+    >>> list(filter(to_func({"bogus": {"$and": []}}, lax=True), [{"myfield": 1}, {"myfield": 2}]))
+    [{'myfield': 1}, {'myfield': 2}]
+
+
+Supported operators
+-------------------
+
+Arithmetic
+``````````
+
+* **$gt**::
+
+    >>> to_func({"myfield": {"$gt": 1}}, lax=True).source
+    "lambda item: (item.get('myfield', LaxNone) > 1) # compiled from {'myfield': {'$gt': 1}}"
+    >>> to_func({"myfield": {"$gt": [1]}}, lax=True).source
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part [1]. Expected value of type int, float, str, unicode, bool or None.
+
+    >>> list(filter(to_func({"bogus": {"$gt": 1}}, lax=True), [{"myfield": i} for i in range(5)]))
+    []
+
+
+* **$gte**::
+
+    >>> to_func({"myfield": {"$gte": 1}}, lax=True).source
+    "lambda item: (item.get('myfield', LaxNone) >= 1) # compiled from {'myfield': {'$gte': 1}}"
+
+    >>> list(filter(to_func({"bogus": {"$gte": 2}}, lax=True), [{"myfield": i} for i in range(5)]))
+    []
+
+* **$lt**::
+
+    >>> to_func({"myfield": {"$lt": 1}}, lax=True).source
+    "lambda item: (item.get('myfield', LaxNone) < 1) # compiled from {'myfield': {'$lt': 1}}"
+
+    >>> list(filter(to_func({"bogus": {"$lt": 1}}, lax=True), [{"myfield": i} for i in range(5)]))
+    []
+
+* **$lte**::
+
+    >>> to_func({"myfield": {"$lte": 1}}, lax=True).source
+    "lambda item: (item.get('myfield', LaxNone) <= 1) # compiled from {'myfield': {'$lte': 1}}"
+
+    >>> list(filter(to_func({"bogus": {"$lte": 1}}, lax=True), [{"myfield": i} for i in range(5)]))
+    []
+
+* **$eq**::
+
+    >>> to_func({"myfield": {"$eq": 1}}, lax=True).source
+    "lambda item: (item.get('myfield', LaxNone) == 1) # compiled from {'myfield': {'$eq': 1}}"
+    >>> to_func({"myfield": 1}, lax=True).source
+    "lambda item: (item.get('myfield', LaxNone) == 1) # compiled from {'myfield': 1}"
+
+    >>> list(filter(to_func({"bogus": {"$eq": 2}}, lax=True), [{"myfield": i} for i in range(5)]))
+    []
+
+* **$ne**::
+
+    >>> to_func({"myfield": {"$ne": 1}}, lax=True).source
+    "lambda item: (item.get('myfield', LaxNone) != 1) # compiled from {'myfield': {'$ne': 1}}"
+
+    >>> list(filter(to_func({"bogus": {"$ne": 2}}, lax=True), [{"myfield": i} for i in range(5)]))
+    []
+
+* **$mod**::
+
+    >>> to_func({"myfield": {"$mod": [2, 1]}}, lax=True).source
+    "lambda item: (item.get('myfield', LaxNone) % 2 == 1) # compiled from {'myfield': {'$mod': [2, 1]}}"
+    >>> to_func({"myfield": {"$mod": [2, 1, 3]}}, lax=True).source
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part [2, 1, 3]. You must have two items: divisor and remainder.
+
+    >>> to_func({"myfield": {"$mod": 2}}, lax=True).source
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part 2. Expected one of: list, tuple.
+
+    >>> to_func({"myfield": {"$mod": (2, 1)}}, lax=True).source
+    "lambda item: (item.get('myfield', LaxNone) % 2 == 1) # compiled from {'myfield': {'$mod': (2, 1)}}"
+
+    >>> list(filter(to_func({"bogus": {"$mod": (2, 1)}}, lax=True), [{"myfield": i} for i in range(5)]))
+    []
+
+Containers
+``````````
+
+* **$in**::
+
+    >>> to_func({"myfield": {"$in": (1, 2, 3)}}, lax=True).source
+    "lambda item, var0={1, 2, 3}: ('myfield' in item and item.get('myfield', LaxNone) in var0) # compiled from {'myfield': {'$in': (1, 2, 3)}}"
+
+    >>> list(filter(to_func({"bogus": {"$in": (1, 2, 3)}}, lax=True), [{"myfield": i} for i in range(5)]))
+    []
+
+* **$nin**::
+
+    >>> to_func({"myfield": {"$nin": [1, 2, 3]}}, lax=True).source
+    "lambda item, var0={1, 2, 3}: ('myfield' not in item or item.get('myfield', LaxNone) not in var0) # compiled from {'myfield': {'$nin': [1, 2, 3]}}"
+
+    >>> to_func({"myfield": {"$nin": {1: 2}}}, lax=True).source
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
+
+    >>> list(filter(to_func({"bogus": {"$nin": (1, 2, 3)}}, lax=True), [{"myfield": i} for i in range(3)]))
+    [{'myfield': 0}, {'myfield': 1}, {'myfield': 2}]
+
+* **$size**::
+
+    >>> to_func({"myfield": {"$size": 3}}, lax=True).source
+    "lambda item: (len(item.get('myfield', LaxNone)) == 3) # compiled from {'myfield': {'$size': 3}}"
+
+    >>> to_func({"myfield": {"$size": "3"}}, lax=True).source
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part '3'. Expected one of: int, long.
+
+    >>> list(filter(to_func({"bogus": {"$size": 3}}, lax=True), [{"myfield": 'x'*i} for i in range(5)]))
+    []
+
+    >>> list(filter(to_func({"bogus": {"$size": 3}}, lax=True), [{"myfield": list(range(i))} for i in range(5)]))
+    []
+
+* **$all**::
+
+    >>> to_func({"myfield": {"$all": [1, 2, 3]}}, lax=True).source
+    "lambda item, var0={1, 2, 3}: (set(item.get('myfield', LaxNone)) >= var0) # compiled from {'myfield': {'$all': [1, 2, 3]}}"
+
+    >>> to_func({"myfield": {"$all": 1}}, lax=True).source
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part 1. Expected one of: set, list, tuple, frozenset.
+
+    >>> list(filter(to_func({"bogus": {"$all": [3, 4]}}, lax=True), [{"myfield": list(range(i))} for i in range(7)]))
+    []
+
+* **$exists**::
+
+    >>> to_func({"myfield": {"$exists": True}}, lax=True).source
+    "lambda item: ('myfield' in item) # compiled from {'myfield': {'$exists': True}}"
+
+    >>> to_func({"myfield": {"$exists": False}}, lax=True).source
+    "lambda item: ('myfield' not in item) # compiled from {'myfield': {'$exists': False}}"
+
+    >>> list(filter(to_func({"$or": [{"bogus": {"$exists": True}}]}, lax=True), [{"field%s" % i: i} for i in range(5)]))
+    []
+
+Boolean operators
+`````````````````
+
+* **$or**::
+
+    >>> to_func({'$or':  [{"bubu": {"$gt": 1}}, {'bubu': {'$lt': 2}}]}, lax=True).source
+    "lambda item: ((item.get('bubu', LaxNone) > 1) or (item.get('bubu', LaxNone) < 2)) # compiled from {'$or': [{'bubu': {'$gt': 1}}, {'bubu': {'$lt': 2}}]}"
+
+    >>> to_func({'$or': "invalid value"}, lax=True).source
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
+
+    >>> list(filter(to_func({'$or': [{"bogus": {"$gt": 3}}, {'bogus': {'$lt': 2}}]}, lax=True), [{"bubu": i} for i in range(5)]))
+    []
+
+* **$and**::
+
+    >>> to_func({'$and': [{"bubu": {"$gt": 1}}, {'bubu': {'$lt': 2}}]}, lax=True).source
+    "lambda item: ((item.get('bubu', LaxNone) > 1) and (item.get('bubu', LaxNone) < 2)) # compiled from {'$and': [{'bubu': {'$gt': 1}}, {'bubu': {'$lt': 2}}]}"
+    >>> to_func({'$or': "invalid value"}, lax=True).source
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
+    >>> list(filter(to_func({'$and': [{"bogus": {"$lt": 3}}, {'bogus': {'$gt': 1}}]}, lax=True), [{"bubu": i} for i in range(5)]))
+    []
+
+* **$*nesting***::
+
+    >>> to_func({'$and': [
+    ...     {"bubu": {"$gt": 1}},
+    ...     {'$or': [
+    ...         {'bubu': {'$lt': 2}},
+    ...         {'$and': [
+    ...             {'bubu': {'$lt': 3}},
+    ...             {'bubu': {'$lt': 4}},
+    ...         ]}
+    ...     ]}
+    ... ]}, lax=True).source
+    "lambda item: ((item.get('bubu', LaxNone) > 1) and ((item.get('bubu', LaxNone) < 2) or ((item.get('bubu', LaxNone) < 3) and (item.get('bubu', LaxNone) < 4)))) # compiled from {'$and': [{'bubu': {'$gt': 1}}, {'$or': [{'bubu': {'$lt': 2}}, {'$and': [{'bubu': {'$lt': 3}}, {'bubu': {'$lt': 4}}]}]}]}"
+
+Regular expressions
+```````````````````
+
+* **$regex**::
+
+    >>> to_func({"myfield": {"$regex": 'a'}}, lax=True).source
+    "lambda item, var0=re.compile('a', 0): (var0.search(item.get('myfield', ''))) # compiled from {'myfield': {'$regex': 'a'}}"
+
+    >>> to_func({"myfield": {"$regex": 'a', "$options": 'i'}}, lax=True).source
+    "lambda item, var0=re.compile('a', 2): (var0.search(item.get('myfield', ''))) # compiled from {'myfield': {...}}"
+
+    >>> to_func({"myfield": {"$regex": 'junk('}}, lax=True).source
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid regular expression 'junk(': unbalanced parenthesis
+
+    >>> to_func({"myfield": {"$regex": 'a', 'junk': 'junk'}}, lax=True).source
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
+
+    >>> to_func({"myfield": {"$regex": 'a', '$nin': ['aaa']}}, lax=True).source
+    "lambda item, var1={'aaa'}, var0=re.compile('a', 0): ((var0.search(item.get('myfield', ''))) and ('myfield' not in item or item.get('myfield', LaxNone) not in var1)) # compiled from {'myfield': {...}}"
+
+    >>> to_func({"bubu": {"$regex": ".*", "$options": "junk"}}, lax=True).source
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part 'junk'. Unsupported regex option 'j'. Only 's', 'x', 'm', 'i' are supported !
+
+    >>> to_func({"bubu": {"$options": "i"}}, lax=True).source
+    Traceback (most recent call last):
+    ...
+    InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
+
+    >>> import string
+    >>> list(filter(to_func({"bogus": {"$regex": '[a-c]', "$options": 'i'}}, lax=True), [{"myfield": i} for i in string.ascii_letters]))
+    []
+
+    >>> list(filter(to_func({"bogus": {"$regex": '[a-c]', "$nin": ['c']}}, lax=True), [{"myfield": i} for i in string.ascii_letters]))
+    []
+
+    >>> total = len(string.ascii_letters)
+    >>> 2 * len(list(filter(
+    ...     to_func({"bougs": {"$regex": '[a-z]'}}, lax=True),
+    ...     [{"myfield": i} for i in string.ascii_letters]
+    ... ))) == 0
+    True
+
+    >>> len(list(filter(
+    ...     to_func({"bogus": {"$regex": '[a-z]', '$options': 'i'}}, lax=True),
+    ...     [{"myfield": i} for i in string.ascii_letters]
+    ... ))) == 0
+    True
+
+    >>> len(list(filter(
+    ...     to_func({"bougs": {"$regex": '[^\d]'}}, lax=True),
+    ...     [{"myfield": i} for i in string.ascii_letters]
+    ... ))) == 0
+    True
+
+
 to_Q
 ====
 

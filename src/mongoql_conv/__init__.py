@@ -240,14 +240,105 @@ class ExprVisitor(BaseVisitor):
         )
 
 
-def to_string(query, closure=None, object_name='row'):
-    visitor = ExprVisitor(closure, object_name)
+class LaxNone(object):
+    __str__ = __repr__ = staticmethod(lambda: "LaxNone")
+    __eq__ = __lt__ = __le__ = __ne__ = __gt__ = __ge__ = staticmethod(lambda _: False)
+    __len__ = staticmethod(lambda: 0)
+    __iter__ = staticmethod(lambda: iter(()))
+    __mod__ = staticmethod(lambda _: LaxNone)
+    __hash__ = None
+LaxNone = LaxNone()
+
+
+class LaxExprVisitor(BaseVisitor):
+    def __init__(self, closure, object_name):
+        self.closure = closure
+        self.object_name = object_name
+
+    def visit_gt(self, value, field_name, context):
+        return "%s.get(%r, LaxNone) > %r" % (self.object_name, field_name, value)
+
+    def visit_gte(self, value, field_name, context):
+        return "%s.get(%r, LaxNone) >= %r" % (self.object_name, field_name, value)
+
+    def visit_lt(self, value, field_name, context):
+        return "%s.get(%r, LaxNone) < %r" % (self.object_name, field_name, value)
+
+    def visit_lte(self, value, field_name, context):
+        return "%s.get(%r, LaxNone) <= %r" % (self.object_name, field_name, value)
+
+    def visit_ne(self, value, field_name, context):
+        return "%s.get(%r, LaxNone) != %r" % (self.object_name, field_name, value)
+
+    def visit_eq(self, value, field_name, context):
+        return "%s.get(%r, LaxNone) == %r" % (self.object_name, field_name, value)
+
+    def visit_in(self, value, field_name, context, operator='in', juction='and'):
+        if self.closure is None:
+            var_name = "{%s}" % ", ".join(repr(i) for i in value)
+        else:
+            var_name = "var%s" % len(self.closure)
+            self.closure[var_name] = "{%s}" % ", ".join(repr(i) for i in value)
+        return "%r %s %s %s %s.get(%r, LaxNone) %s %s" % (
+            field_name, operator, self.object_name, juction, self.object_name, field_name, operator, var_name
+        )
+
+    def visit_nin(self, value, field_name, context):
+        return self.visit_in(value, field_name, context, 'not in', 'or')
+
+    def visit_and(self, parts, field_name, context, operator=' and '):
+        return self.render_and([self.visit_query(part, field_name) for part in parts], field_name, context, operator)
+
+    def visit_or(self, parts, field_name, context):
+        return self.visit_and(parts, field_name, context, ' or ')
+
+    def render_and(self, parts, field_name, context, operator=' and '):
+        multiple = len(parts) > 1
+        return operator.join("(%s)" % part if multiple else part for part in parts) or 'True'
+
+    def visit_regex(self, value, field_name, context):
+        if value is Stripped:
+            return Skip
+        else:
+            regex, options = value
+
+            if self.closure is None:
+                return "re.search(%r, %s.get(%r, ''), %r)" % (regex, self.object_name, field_name, options)
+            else:
+                var_name = "var%s" % len(self.closure)
+                self.closure[var_name] = "re.compile(%r, %r)" % (regex, options)
+                return "%s.search(%s.get(%r, ''))" % (var_name, self.object_name, field_name)
+    visit_options = visit_regex
+
+    def visit_size(self, value, field_name, context):
+        return "len(%s.get(%r, LaxNone)) == %r" % (self.object_name, field_name, value)
+
+    def visit_all(self, value, field_name, context):
+        if self.closure is None:
+            return 'set(%s.get(%r, LaxNone)) >= {%s}' % (self.object_name, field_name, ', '.join(repr(i) for i in value))
+        else:
+            var_name = "var%s" % len(self.closure)
+            self.closure[var_name] = "{%s}" % ', '.join(repr(i) for i in value)
+            return 'set(%s.get(%r, LaxNone)) >= %s' % (self.object_name, field_name, var_name)
+
+    def visit_mod(self, value, field_name, context):
+        divisor, remainder = value
+        return '%s.get(%r, LaxNone) %% %s == %s' % (self.object_name, field_name, divisor, remainder)
+
+    def visit_exists(self, value, field_name, context):
+        return '%r %sin %s' % (
+            field_name, '' if value else 'not ', self.object_name,
+        )
+
+
+def to_string(query, closure=None, object_name='row', lax=False):
+    visitor = (LaxExprVisitor if lax else ExprVisitor)(closure, object_name)
     return visitor.visit(query)
 
 
-def to_func(query, use_arguments=True):
+def to_func(query, use_arguments=True, lax=False):
     closure = {} if use_arguments else None
-    as_string = to_string(query, closure, object_name='item')
+    as_string = to_string(query, closure, object_name='item', lax=lax)
     as_code = "lambda item%s: (%s) # compiled from %r" % (
         ', ' + ', '.join('%s=%s' % (var_name, value) for var_name, value in closure.items()) if closure else '',
         as_string,
