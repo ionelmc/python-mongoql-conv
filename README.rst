@@ -73,11 +73,11 @@ to_string
     >>> to_string({"myfield": {"$and": []}})
     'True'
 
-Supported operators
--------------------
+to_string: Supported operators
+------------------------------
 
-Arithmetic
-``````````
+to_string: Supported operators: Arithmetic
+``````````````````````````````````````````
 
 * **$gt**::
 
@@ -130,8 +130,8 @@ Arithmetic
     >>> to_string({"myfield": {"$mod": (2, 1)}})
     "row['myfield'] % 2 == 1"
 
-Containers
-``````````
+to_string: Supported operators: Containers
+``````````````````````````````````````````
 
 * **$in**::
 
@@ -173,8 +173,8 @@ Containers
     >>> to_string({"myfield": {"$exists": False}})
     "'myfield' not in row"
 
-Boolean operators
-`````````````````
+to_string: Supported operators: Boolean operators
+`````````````````````````````````````````````````
 
 * **$or**::
 
@@ -208,8 +208,8 @@ Boolean operators
     ... ]})
     "(row['bubu'] > 1) and ((row['bubu'] < 2) or ((row['bubu'] < 3) and (row['bubu'] < 4)))"
 
-Regular expressions
-```````````````````
+to_string: Supported operators: Regular expressions
+```````````````````````````````````````````````````
 
 * **$regex**::
 
@@ -286,11 +286,11 @@ to_func
     [{'myfield': 1}, {'myfield': 2}]
 
 
-Supported operators
--------------------
+to_func: Supported operators
+----------------------------
 
-Arithmetic
-``````````
+to_func: Supported operators: Arithmetic
+````````````````````````````````````````
 
 * **$gt**::
 
@@ -367,8 +367,8 @@ Arithmetic
     >>> list(filter(to_func({"myfield": {"$mod": (2, 1)}}), [{"myfield": i} for i in range(5)]))
     [{'myfield': 1}, {'myfield': 3}]
 
-Containers
-``````````
+to_func: Supported operators: Containers
+````````````````````````````````````````
 
 * **$in**::
 
@@ -431,8 +431,8 @@ Containers
     >>> list(filter(to_func({"$or": [{"field1": {"$exists": True}}, {"field2": {"$exists": False}}]}), [{"field%s" % i: i} for i in range(5)]))
     [{'field0': 0}, {'field1': 1}, {'field3': 3}, {'field4': 4}]
 
-Boolean operators
-`````````````````
+to_func: Supported operators: Boolean operators
+```````````````````````````````````````````````
 
 * **$or**::
 
@@ -472,8 +472,8 @@ Boolean operators
     ... ]}).source
     "lambda item: ((item['bubu'] > 1) and ((item['bubu'] < 2) or ((item['bubu'] < 3) and (item['bubu'] < 4)))) # compiled from {'$and': [{'bubu': {'$gt': 1}}, {'$or': [{'bubu': {'$lt': 2}}, {'$and': [{'bubu': {'$lt': 3}}, {'bubu': {'$lt': 4}}]}]}]}"
 
-Regular expressions
-```````````````````
+to_func: Supported operators: Regular expressions
+`````````````````````````````````````````````````
 
 * **$regex**::
 
@@ -494,7 +494,7 @@ Regular expressions
     InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
 
     >>> to_func({"myfield": {"$regex": 'a', '$nin': ['aaa']}}).source
-    "lambda item, var1={'aaa'}, var0=re.compile('a', 0): ((var0.search(item['myfield'])) and (item['myfield'] not in var1)) # compiled from {'myfield': {...}}"
+    "lambda item, var1={'aaa'}, var0=re.compile('a', 0): ...((var0.search(item['myfield'])) and (item['myfield'] not in var1)) # compiled from {'myfield': {...}}"
 
     >>> to_func({"bubu": {"$regex": ".*", "$options": "junk"}}).source
     Traceback (most recent call last):
@@ -574,11 +574,11 @@ to_func (lax mode)
     [{'myfield': 1}, {'myfield': 2}]
 
 
-Supported operators
--------------------
+to_func (lax mode): Supported operators
+---------------------------------------
 
-Arithmetic
-``````````
+to_func (lax mode): Supported operators: Arithmetic
+```````````````````````````````````````````````````
 
 * **$gt**::
 
@@ -655,8 +655,8 @@ Arithmetic
     >>> list(filter(to_func({"bogus": {"$mod": (2, 1)}}, lax=True), [{"myfield": i} for i in range(5)]))
     []
 
-Containers
-``````````
+to_func (lax mode): Supported operators: Containers
+```````````````````````````````````````````````````
 
 * **$in**::
 
@@ -719,8 +719,8 @@ Containers
     >>> list(filter(to_func({"$or": [{"bogus": {"$exists": True}}]}, lax=True), [{"field%s" % i: i} for i in range(5)]))
     []
 
-Boolean operators
-`````````````````
+to_func (lax mode): Supported operators: Boolean operators
+``````````````````````````````````````````````````````````
 
 * **$or**::
 
@@ -760,8 +760,8 @@ Boolean operators
     ... ]}, lax=True).source
     "lambda item: ((item.get('bubu', LaxNone) > 1) and ((item.get('bubu', LaxNone) < 2) or ((item.get('bubu', LaxNone) < 3) and (item.get('bubu', LaxNone) < 4)))) # compiled from {'$and': [{'bubu': {'$gt': 1}}, {'$or': [{'bubu': {'$lt': 2}}, {'$and': [{'bubu': {'$lt': 3}}, {'bubu': {'$lt': 4}}]}]}]}"
 
-Regular expressions
-```````````````````
+to_func (lax mode): Supported operators: Regular expressions
+````````````````````````````````````````````````````````````
 
 * **$regex**::
 
@@ -862,11 +862,11 @@ Compiles down to a Django Q object tree::
     [<MyModel: field1=0, field2='0'>, <MyModel: field1=1, field2='1'>, <MyModel: field1=2, field2='2'>, <MyModel: field1=3, field2='3'>, <MyModel: field1=4, field2='4'>]
 
 
-Supported operators
--------------------
+to_Q: Supported operators
+-------------------------
 
-Arithmetic
-``````````
+to_Q: Supported operators: Arithmetic
+`````````````````````````````````````
 
 * **$gt**::
 
@@ -930,8 +930,8 @@ Arithmetic
     InvalidQuery: DjangoVisitor doesn't support operator '$mod'
 
 
-Containers
-``````````
+to_Q: Supported operators: Containers
+`````````````````````````````````````
 
 * **$in**::
 
@@ -970,8 +970,8 @@ Containers
     ...
     InvalidQuery: DjangoVisitor doesn't support operator '$exists'
 
-Boolean operators
-`````````````````
+to_Q: Supported operators: Boolean operators
+````````````````````````````````````````````
 
 * **$or**::
 
@@ -1015,8 +1015,8 @@ Boolean operators
     ... ]}))
     [<MyModel: field1=3, field2='3'>, <MyModel: field1=4, field2='4'>]
 
-Regular expressions
-```````````````````
+to_Q: Supported operators: Regular expressions
+``````````````````````````````````````````````
 
 * **$regex**::
 
