@@ -42,7 +42,6 @@ API
 * ``mongoql_conv.to_func``: to_func_
 * ``mongoql_conv.django.to_Q``: to_Q_
 
-
 to_string
 =========
 
@@ -86,7 +85,7 @@ to_string: Supported operators: Arithmetic
     >>> to_string({"myfield": {"$gt": [1]}})
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part [1]. Expected value of type int, float, str, unicode, bool or None.
+    InvalidQuery: Invalid query part [1]. Expected one of: int, long, float, str, unicode, bool, None.
 
 * **$gte**::
 
@@ -242,7 +241,7 @@ to_string: Supported operators: Regular expressions
     >>> to_string({"bubu": {"$regex": ".*", "$options": "junk"}})
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 'junk'. Unsupported regex option 'j'. Only 's', 'x', 'm', 'i' are supported !
+    InvalidQuery: Invalid query part 'junk'. Unsupported regex option 'j'. Only s, x, m, i are supported !
 
     >>> to_string({"bubu": {"$options": "i"}})
     Traceback (most recent call last):
@@ -299,7 +298,7 @@ to_func: Supported operators: Arithmetic
     >>> to_func({"myfield": {"$gt": [1]}}).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part [1]. Expected value of type int, float, str, unicode, bool or None.
+    InvalidQuery: Invalid query part [1]. Expected one of: int, long, float, str, unicode, bool, None.
 
     >>> list(filter(to_func({"myfield": {"$gt": 1}}), [{"myfield": i} for i in range(5)]))
     [{'myfield': 2}, {'myfield': 3}, {'myfield': 4}]
@@ -494,12 +493,12 @@ to_func: Supported operators: Regular expressions
     InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
 
     >>> to_func({"myfield": {"$regex": 'a', '$nin': ['aaa']}}).source
-    "lambda item, var1={'aaa'}, var0=re.compile('a', 0): ...((var0.search(item['myfield'])) and (item['myfield'] not in var1)) # compiled from {'myfield': {...}}"
+    "lambda item, var1={'aaa'}, var0=re.compile('a', 0): ((var0.search(item['myfield'])) and (item['myfield'] not in var1)) # compiled from {'myfield': {...}}"
 
     >>> to_func({"bubu": {"$regex": ".*", "$options": "junk"}}).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 'junk'. Unsupported regex option 'j'. Only 's', 'x', 'm', 'i' are supported !
+    InvalidQuery: Invalid query part 'junk'. Unsupported regex option 'j'. Only s, x, m, i are supported !
 
     >>> to_func({"bubu": {"$options": "i"}}).source
     Traceback (most recent call last):
@@ -587,7 +586,7 @@ to_func (lax mode): Supported operators: Arithmetic
     >>> to_func({"myfield": {"$gt": [1]}}, lax=True).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part [1]. Expected value of type int, float, str, unicode, bool or None.
+    InvalidQuery: Invalid query part [1]. Expected one of: int, long, float, str, unicode, bool, None.
 
     >>> list(filter(to_func({"bogus": {"$gt": 1}}, lax=True), [{"myfield": i} for i in range(5)]))
     []
@@ -787,7 +786,7 @@ to_func (lax mode): Supported operators: Regular expressions
     >>> to_func({"bubu": {"$regex": ".*", "$options": "junk"}}, lax=True).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 'junk'. Unsupported regex option 'j'. Only 's', 'x', 'm', 'i' are supported !
+    InvalidQuery: Invalid query part 'junk'. Unsupported regex option 'j'. Only s, x, m, i are supported !
 
     >>> to_func({"bubu": {"$options": "i"}}, lax=True).source
     Traceback (most recent call last):
@@ -916,9 +915,8 @@ to_Q: Supported operators: Arithmetic
 
 * **$ne**::
 
-    >>> print(to_Q({"myfield": {"$ne": 1}}))
-    (NOT (AND: ('myfield', 1)))
-
+    >>> str(to_Q({"myfield": {"$ne": 1}})) in ["(NOT (AND: ('myfield', 1)))", "(AND: (NOT (AND: ('myfield', 1))))"]
+    True
     >>> MyModel.objects.filter(to_Q({"field1": {"$ne": 1}}))
     [<MyModel: field1=0, field2='0'>, <MyModel: field1=2, field2='2'>, <MyModel: field1=3, field2='3'>, <MyModel: field1=4, field2='4'>]
 
@@ -943,8 +941,8 @@ to_Q: Supported operators: Containers
 
 * **$nin**::
 
-    >>> print(to_Q({"myfield": {"$nin": [1, 2, 3]}}))
-    (NOT (AND: ('myfield__in', [1, 2, 3])))
+    >>> str(to_Q({"myfield": {"$nin": [1, 2, 3]}})) in ["(NOT (AND: ('myfield__in', [1, 2, 3])))", "(AND: (NOT (AND: ('myfield__in', [1, 2, 3]))))"]
+    True
 
     >>> MyModel.objects.filter(to_Q({"field1": {"$nin": (1, 2)}}))
     [<MyModel: field1=0, field2='0'>, <MyModel: field1=3, field2='3'>, <MyModel: field1=4, field2='4'>]

@@ -114,7 +114,7 @@ class BaseVisitor(with_metaclass(validator_metaclass(base=ABCMeta))):
                 if opt not in acceptable_options:
                     raise InvalidQuery(
                         "Invalid query part %r. Unsupported regex option %r. Only %s are supported !" % (
-                            value, opt, ', '.join(acceptable_options)
+                            options, opt, ', '.join(acceptable_options)
                         )
                     )
                 raw_options |= getattr(re, opt.upper())
