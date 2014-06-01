@@ -10,6 +10,7 @@ from django.db.models import Q
 
 from mongoql_conv import BaseVisitor, Stripped, Skip
 
+
 class DjangoVisitor(BaseVisitor):
     def visit_gt(self, value, field_name, context):
         return Q(("%s__gt" % field_name, value))

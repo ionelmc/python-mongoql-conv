@@ -44,9 +44,11 @@ def validator_metaclass(base=type):
         base.__name__ + "WithValidatorMeta",
         (base, ),
         {'__new__': lambda mcls, name, bases, namespace: base.__new__(mcls, name, bases, {
-            name: validated_method('validate_'+name[6:], func)
-                  if callable(func) and name.startswith('visit_')
-                  else func
+            name: (
+                validated_method('validate_'+name[6:], func)
+                if callable(func) and name.startswith('visit_')
+                else func
+            )
             for name, func in namespace.items()
         })}
     )
