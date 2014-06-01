@@ -5,7 +5,7 @@ import os
 
 setup(
     name="mongoql-conv",
-    version="0.4.0",
+    version="0.4.1",
     url='https://github.com/ionelmc/python-mongoql-conv',
     download_url='',
     license='BSD',
