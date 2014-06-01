@@ -2,7 +2,7 @@
     python-mongoql-conv
 ===========================
 
-.. image:: http://img.shields.io/travis/ionelmc/python-mongoql-conv.png
+.. image:: http://img.shields.io/travis/ionelmc/python-mongoql-conv/master.png
     :alt: Build Status
     :target: https://travis-ci.org/ionelmc/python-mongoql-conv
 
