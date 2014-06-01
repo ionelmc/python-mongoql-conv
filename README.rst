@@ -55,8 +55,8 @@ to_string
     >>> to_string({})
     'True'
 
-    >>> to_string({"field1": 1, "field2": 2})
-    "(row['field2'] == 2) and (row['field1'] == 1)"
+    >>> set(to_string({"field1": 1, "field2": 2}).split(' and ')) == {"(row['field2'] == 2)", "(row['field1'] == 1)"}
+    True
 
     >>> to_string({"myfield": 1}, object_name='item')
     "item['myfield'] == 1"
@@ -235,8 +235,11 @@ to_string: Supported operators: Regular expressions
     ...
     InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
 
-    >>> to_string({"myfield": {"$regex": 'a', '$nin': ['aaa']}})
-    "(re.search('a', row['myfield'], 0)) and (row['myfield'] not in {'aaa'})"
+    >>> set(to_string({"myfield": {"$regex": 'a', '$nin': ['aaa']}}).split(' and ')) == {
+    ...     "(re.search('a', row['myfield'], 0))",
+    ...     "(row['myfield'] not in {'aaa'})"
+    ... }
+    True
 
     >>> to_string({"bubu": {"$regex": ".*", "$options": "junk"}})
     Traceback (most recent call last):
@@ -492,8 +495,15 @@ to_func: Supported operators: Regular expressions
     ...
     InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
 
-    >>> to_func({"myfield": {"$regex": 'a', '$nin': ['aaa']}}).source
-    "lambda item, var1={'aaa'}, var0=re.compile('a', 0): ((var0.search(item['myfield'])) and (item['myfield'] not in var1)) # compiled from {'myfield': {...}}"
+    >>> import re
+    >>> set(re.match(r'(.*): \((.*) and (.*)\)',
+    ...     to_func({"myfield": {"$regex": 'a', '$nin': ['aaa']}}, use_arguments=False).source
+    ... ).groups()) == {
+    ...     'lambda item',
+    ...     "(item['myfield'] not in {'aaa'})",
+    ...     "(re.search('a', item['myfield'], 0))"
+    ... }
+    True
 
     >>> to_func({"bubu": {"$regex": ".*", "$options": "junk"}}).source
     Traceback (most recent call last):
@@ -780,8 +790,14 @@ to_func (lax mode): Supported operators: Regular expressions
     ...
     InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
 
-    >>> to_func({"myfield": {"$regex": 'a', '$nin': ['aaa']}}, lax=True).source
-    "lambda item, var1={'aaa'}, var0=re.compile('a', 0): ((var0.search(item.get('myfield', ''))) and ('myfield' not in item or item.get('myfield', LaxNone) not in var1)) # compiled from {'myfield': {...}}"
+    >>> set(re.match(r'(.*): \((.*) and (.*)\)',
+    ...     to_func({"myfield": {"$regex": 'a', '$nin': ['aaa']}}, lax=True, use_arguments=False).source
+    ... ).groups()) == {
+    ...     "lambda item",
+    ...     "(re.search('a', item.get('myfield', ''), 0))",
+    ...     "('myfield' not in item or item.get('myfield', LaxNone) not in {'aaa'})"
+    ... }
+    True
 
     >>> to_func({"bubu": {"$regex": ".*", "$options": "junk"}}, lax=True).source
     Traceback (most recent call last):
@@ -836,9 +852,6 @@ Compiles down to a Django Q object tree::
     >>> MyModel.objects.clean_and_create([(i, i) for i in range(5)])
     >>> MyModel.objects.filter(to_Q({"field1": 1}))
     [<MyModel: field1=1, field2='1'>]
-
-    >>> print(to_Q({"field1": 1, "field2": 2}))
-    (AND: ('field2', 2), ('field1', 1))
 
     >>> MyModel.objects.filter(to_Q({"field1": 1, "field2": 1}))
     [<MyModel: field1=1, field2='1'>]
@@ -1034,8 +1047,10 @@ to_Q: Supported operators: Regular expressions
     ...
     InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
 
-    >>> print(to_Q({"myfield": {"$regex": 'a', '$nin': ['aaa']}}))
-    (AND: ('myfield__regex', 'a'), (NOT (AND: ('myfield__in', ['aaa']))))
+    >>> "('myfield__regex', 'a')" in str(to_Q({"myfield": {"$regex": 'a', '$nin': ['aaa']}}))
+    True
+    >>> "(NOT (AND: ('myfield__in', ['aaa'])))" in str(to_Q({"myfield": {"$regex": 'a', '$nin': ['aaa']}}))
+    True
 
     >>> print(to_Q({"bubu": {"$regex": ".*", "$options": "mxs"}}))
     Traceback (most recent call last):
