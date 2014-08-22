@@ -67,7 +67,7 @@ to_string
     >>> to_string({"myfield": {"$in": {1: 2}}})
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
+    mongoql_conv.InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
 
     >>> to_string({"myfield": {"$and": []}})
     'True'
@@ -85,7 +85,7 @@ to_string: Supported operators: Arithmetic
     >>> to_string({"myfield": {"$gt": [1]}})
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part [1]. Expected one of: int, long, float, str, unicode, bool, None.
+    mongoql_conv.InvalidQuery: Invalid query part [1]. Expected one of: int, ...float, str, ...bool, None.
 
 * **$gte**::
 
@@ -121,11 +121,11 @@ to_string: Supported operators: Arithmetic
     >>> to_string({"myfield": {"$mod": [2, 1, 3]}})
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part [2, 1, 3]. You must have two items: divisor and remainder.
+    mongoql_conv.InvalidQuery: Invalid query part [2, 1, 3]. You must have two items: divisor and remainder.
     >>> to_string({"myfield": {"$mod": 2}})
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 2. Expected one of: list, tuple.
+    mongoql_conv.InvalidQuery: Invalid query part 2. Expected one of: list, tuple.
     >>> to_string({"myfield": {"$mod": (2, 1)}})
     "row['myfield'] % 2 == 1"
 
@@ -144,7 +144,7 @@ to_string: Supported operators: Containers
     >>> to_string({"myfield": {"$nin": {1: 2}}})
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
+    mongoql_conv.InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
 
 * **$size**::
 
@@ -153,7 +153,7 @@ to_string: Supported operators: Containers
     >>> to_string({"myfield": {"$size": "3"}})
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part '3'. Expected one of: int, long.
+    mongoql_conv.InvalidQuery: Invalid query part '3'. Expected one of: int...
 
 
 * **$all**::
@@ -163,7 +163,7 @@ to_string: Supported operators: Containers
     >>> to_string({"myfield": {"$all": 1}})
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 1. Expected one of: set, list, tuple, frozenset.
+    mongoql_conv.InvalidQuery: Invalid query part 1. Expected one of: set, list, tuple, frozenset.
 
 * **$exists**::
 
@@ -182,7 +182,7 @@ to_string: Supported operators: Boolean operators
     >>> to_string({'$or': "invalid value"})
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
+    mongoql_conv.InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
 
 * **$and**::
 
@@ -191,7 +191,7 @@ to_string: Supported operators: Boolean operators
     >>> to_string({'$or': "invalid value"})
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
+    mongoql_conv.InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
 
 * **$*nesting***::
 
@@ -228,12 +228,12 @@ to_string: Supported operators: Regular expressions
     >>> to_string({"myfield": {"$regex": 'junk('}})
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid regular expression 'junk(': unbalanced parenthesis
+    mongoql_conv.InvalidQuery: Invalid regular expression 'junk(': unbalanced parenthesis
 
     >>> to_string({"myfield": {"$regex": 'a', 'junk': 'junk'}})
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
+    mongoql_conv.InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
 
     >>> set(to_string({"myfield": {"$regex": 'a', '$nin': ['aaa']}}).split(' and ')) == {
     ...     "(re.search('a', row['myfield'], 0))",
@@ -244,12 +244,12 @@ to_string: Supported operators: Regular expressions
     >>> to_string({"bubu": {"$regex": ".*", "$options": "junk"}})
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 'junk'. Unsupported regex option 'j'. Only s, x, m, i are supported !
+    mongoql_conv.InvalidQuery: Invalid query part 'junk'. Unsupported regex option 'j'. Only s, x, m, i are supported !
 
     >>> to_string({"bubu": {"$options": "i"}})
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
+    mongoql_conv.InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
 
 to_func
 =======
@@ -279,7 +279,7 @@ to_func
     >>> to_func({"myfield": {"$in": {1: 2}}}).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
+    mongoql_conv.InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
 
     >>> to_func({"myfield": {"$and": []}}).source
     "lambda item: (True) # compiled from {'myfield': {'$and': []}}"
@@ -301,7 +301,7 @@ to_func: Supported operators: Arithmetic
     >>> to_func({"myfield": {"$gt": [1]}}).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part [1]. Expected one of: int, long, float, str, unicode, bool, None.
+    mongoql_conv.InvalidQuery: Invalid query part [1]. Expected one of: int,...float, str,...bool, None.
 
     >>> list(filter(to_func({"myfield": {"$gt": 1}}), [{"myfield": i} for i in range(5)]))
     [{'myfield': 2}, {'myfield': 3}, {'myfield': 4}]
@@ -356,12 +356,12 @@ to_func: Supported operators: Arithmetic
     >>> to_func({"myfield": {"$mod": [2, 1, 3]}}).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part [2, 1, 3]. You must have two items: divisor and remainder.
+    mongoql_conv.InvalidQuery: Invalid query part [2, 1, 3]. You must have two items: divisor and remainder.
 
     >>> to_func({"myfield": {"$mod": 2}}).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 2. Expected one of: list, tuple.
+    mongoql_conv.InvalidQuery: Invalid query part 2. Expected one of: list, tuple.
 
     >>> to_func({"myfield": {"$mod": (2, 1)}}).source
     "lambda item: (item['myfield'] % 2 == 1) # compiled from {'myfield': {'$mod': (2, 1)}}"
@@ -388,7 +388,7 @@ to_func: Supported operators: Containers
     >>> to_func({"myfield": {"$nin": {1: 2}}}).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
+    mongoql_conv.InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
 
     >>> list(filter(to_func({"myfield": {"$nin": (1, 2, 3)}}), [{"myfield": i} for i in range(5)]))
     [{'myfield': 0}, {'myfield': 4}]
@@ -401,7 +401,7 @@ to_func: Supported operators: Containers
     >>> to_func({"myfield": {"$size": "3"}}).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part '3'. Expected one of: int, long.
+    mongoql_conv.InvalidQuery: Invalid query part '3'. Expected one of: int...
 
     >>> list(filter(to_func({"myfield": {"$size": 3}}), [{"myfield": 'x'*i} for i in range(5)]))
     [{'myfield': 'xxx'}]
@@ -417,7 +417,7 @@ to_func: Supported operators: Containers
     >>> to_func({"myfield": {"$all": 1}}).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 1. Expected one of: set, list, tuple, frozenset.
+    mongoql_conv.InvalidQuery: Invalid query part 1. Expected one of: set, list, tuple, frozenset.
 
     >>> list(filter(to_func({"myfield": {"$all": [3, 4]}}), [{"myfield": list(range(i))} for i in range(7)]))
     [{'myfield': [0, 1, 2, 3, 4]}, {'myfield': [0, 1, 2, 3, 4, 5]}]
@@ -444,7 +444,7 @@ to_func: Supported operators: Boolean operators
     >>> to_func({'$or': "invalid value"}).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
+    mongoql_conv.InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
 
     >>> list(filter(to_func({'$or': [{"bubu": {"$gt": 3}}, {'bubu': {'$lt': 2}}]}), [{"bubu": i} for i in range(5)]))
     [{'bubu': 0}, {'bubu': 1}, {'bubu': 4}]
@@ -456,7 +456,7 @@ to_func: Supported operators: Boolean operators
     >>> to_func({'$or': "invalid value"}).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
+    mongoql_conv.InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
     >>> list(filter(to_func({'$and': [{"bubu": {"$lt": 3}}, {'bubu': {'$gt': 1}}]}), [{"bubu": i} for i in range(5)]))
     [{'bubu': 2}]
 
@@ -488,12 +488,12 @@ to_func: Supported operators: Regular expressions
     >>> to_func({"myfield": {"$regex": 'junk('}}).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid regular expression 'junk(': unbalanced parenthesis
+    mongoql_conv.InvalidQuery: Invalid regular expression 'junk(': unbalanced parenthesis
 
     >>> to_func({"myfield": {"$regex": 'a', 'junk': 'junk'}}).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
+    mongoql_conv.InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
 
     >>> import re
     >>> set(re.match(r'(.*): \((.*) and (.*)\)',
@@ -508,12 +508,12 @@ to_func: Supported operators: Regular expressions
     >>> to_func({"bubu": {"$regex": ".*", "$options": "junk"}}).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 'junk'. Unsupported regex option 'j'. Only s, x, m, i are supported !
+    mongoql_conv.InvalidQuery: Invalid query part 'junk'. Unsupported regex option 'j'. Only s, x, m, i are supported !
 
     >>> to_func({"bubu": {"$options": "i"}}).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
+    mongoql_conv.InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
 
     >>> import string
     >>> list(filter(to_func({"myfield": {"$regex": '[a-c]', "$options": 'i'}}), [{"myfield": i} for i in string.ascii_letters]))
@@ -574,7 +574,7 @@ to_func (lax mode)
     >>> to_func({"myfield": {"$in": {1: 2}}}, lax=True).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
+    mongoql_conv.InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
 
     >>> to_func({"myfield": {"$and": []}}, lax=True).source
     "lambda item: (True) # compiled from {'myfield': {'$and': []}}"
@@ -596,7 +596,7 @@ to_func (lax mode): Supported operators: Arithmetic
     >>> to_func({"myfield": {"$gt": [1]}}, lax=True).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part [1]. Expected one of: int, long, float, str, unicode, bool, None.
+    mongoql_conv.InvalidQuery: Invalid query part [1]. Expected one of: int,...float, str,...bool, None.
 
     >>> list(filter(to_func({"bogus": {"$gt": 1}}, lax=True), [{"myfield": i} for i in range(5)]))
     []
@@ -651,12 +651,12 @@ to_func (lax mode): Supported operators: Arithmetic
     >>> to_func({"myfield": {"$mod": [2, 1, 3]}}, lax=True).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part [2, 1, 3]. You must have two items: divisor and remainder.
+    mongoql_conv.InvalidQuery: Invalid query part [2, 1, 3]. You must have two items: divisor and remainder.
 
     >>> to_func({"myfield": {"$mod": 2}}, lax=True).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 2. Expected one of: list, tuple.
+    mongoql_conv.InvalidQuery: Invalid query part 2. Expected one of: list, tuple.
 
     >>> to_func({"myfield": {"$mod": (2, 1)}}, lax=True).source
     "lambda item: (item.get('myfield', LaxNone) % 2 == 1) # compiled from {'myfield': {'$mod': (2, 1)}}"
@@ -683,7 +683,7 @@ to_func (lax mode): Supported operators: Containers
     >>> to_func({"myfield": {"$nin": {1: 2}}}, lax=True).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
+    mongoql_conv.InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
 
     >>> list(filter(to_func({"bogus": {"$nin": (1, 2, 3)}}, lax=True), [{"myfield": i} for i in range(3)]))
     [{'myfield': 0}, {'myfield': 1}, {'myfield': 2}]
@@ -696,7 +696,7 @@ to_func (lax mode): Supported operators: Containers
     >>> to_func({"myfield": {"$size": "3"}}, lax=True).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part '3'. Expected one of: int, long.
+    mongoql_conv.InvalidQuery: Invalid query part '3'. Expected one of: int...
 
     >>> list(filter(to_func({"bogus": {"$size": 3}}, lax=True), [{"myfield": 'x'*i} for i in range(5)]))
     []
@@ -712,7 +712,7 @@ to_func (lax mode): Supported operators: Containers
     >>> to_func({"myfield": {"$all": 1}}, lax=True).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 1. Expected one of: set, list, tuple, frozenset.
+    mongoql_conv.InvalidQuery: Invalid query part 1. Expected one of: set, list, tuple, frozenset.
 
     >>> list(filter(to_func({"bogus": {"$all": [3, 4]}}, lax=True), [{"myfield": list(range(i))} for i in range(7)]))
     []
@@ -739,7 +739,7 @@ to_func (lax mode): Supported operators: Boolean operators
     >>> to_func({'$or': "invalid value"}, lax=True).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
+    mongoql_conv.InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
 
     >>> list(filter(to_func({'$or': [{"bogus": {"$gt": 3}}, {'bogus': {'$lt': 2}}]}, lax=True), [{"bubu": i} for i in range(5)]))
     []
@@ -751,7 +751,7 @@ to_func (lax mode): Supported operators: Boolean operators
     >>> to_func({'$or': "invalid value"}, lax=True).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
+    mongoql_conv.InvalidQuery: Invalid query part 'invalid value'. Expected one of: list, tuple.
     >>> list(filter(to_func({'$and': [{"bogus": {"$lt": 3}}, {'bogus': {'$gt': 1}}]}, lax=True), [{"bubu": i} for i in range(5)]))
     []
 
@@ -783,12 +783,12 @@ to_func (lax mode): Supported operators: Regular expressions
     >>> to_func({"myfield": {"$regex": 'junk('}}, lax=True).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid regular expression 'junk(': unbalanced parenthesis
+    mongoql_conv.InvalidQuery: Invalid regular expression 'junk(': unbalanced parenthesis
 
     >>> to_func({"myfield": {"$regex": 'a', 'junk': 'junk'}}, lax=True).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
+    mongoql_conv.InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
 
     >>> set(re.match(r'(.*): \((.*) and (.*)\)',
     ...     to_func({"myfield": {"$regex": 'a', '$nin': ['aaa']}}, lax=True, use_arguments=False).source
@@ -802,12 +802,12 @@ to_func (lax mode): Supported operators: Regular expressions
     >>> to_func({"bubu": {"$regex": ".*", "$options": "junk"}}, lax=True).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 'junk'. Unsupported regex option 'j'. Only s, x, m, i are supported !
+    mongoql_conv.InvalidQuery: Invalid query part 'junk'. Unsupported regex option 'j'. Only s, x, m, i are supported !
 
     >>> to_func({"bubu": {"$options": "i"}}, lax=True).source
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
+    mongoql_conv.InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
 
     >>> import string
     >>> list(filter(to_func({"bogus": {"$regex": '[a-c]', "$options": 'i'}}, lax=True), [{"myfield": i} for i in string.ascii_letters]))
@@ -865,7 +865,7 @@ Compiles down to a Django Q object tree::
     >>> print(to_Q({"myfield": {"$in": {1: 2}}}))
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
+    mongoql_conv.InvalidQuery: Invalid query part {1: 2}. Expected one of: set, list, tuple, frozenset.
 
     >>> print(to_Q({"myfield": {"$and": []}}))
     (AND: )
@@ -938,7 +938,7 @@ to_Q: Supported operators: Arithmetic
     >>> print(to_Q({"myfield": {"$mod": [2, 1]}}))
     Traceback (most recent call last):
     ...
-    InvalidQuery: DjangoVisitor doesn't support operator '$mod'
+    mongoql_conv.InvalidQuery: DjangoVisitor doesn't support operator '$mod'
 
 
 to_Q: Supported operators: Containers
@@ -965,21 +965,21 @@ to_Q: Supported operators: Containers
     >>> print(to_Q({"myfield": {"$size": 3}}))
     Traceback (most recent call last):
     ...
-    InvalidQuery: DjangoVisitor doesn't support operator '$size'
+    mongoql_conv.InvalidQuery: DjangoVisitor doesn't support operator '$size'
 
 * **$all**::
 
     >>> print(to_Q({"myfield": {"$all": [1, 2, 3]}}))
     Traceback (most recent call last):
     ...
-    InvalidQuery: DjangoVisitor doesn't support operator '$all'
+    mongoql_conv.InvalidQuery: DjangoVisitor doesn't support operator '$all'
 
 * **$exists**::
 
     >>> print(to_Q({"myfield": {"$exists": True}}))
     Traceback (most recent call last):
     ...
-    InvalidQuery: DjangoVisitor doesn't support operator '$exists'
+    mongoql_conv.InvalidQuery: DjangoVisitor doesn't support operator '$exists'
 
 to_Q: Supported operators: Boolean operators
 ````````````````````````````````````````````
@@ -1040,12 +1040,12 @@ to_Q: Supported operators: Regular expressions
     >>> print(to_Q({"myfield": {"$regex": 'junk('}}))
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid regular expression 'junk(': unbalanced parenthesis
+    mongoql_conv.InvalidQuery: Invalid regular expression 'junk(': unbalanced parenthesis
 
     >>> print(to_Q({"myfield": {"$regex": 'a', 'junk': 'junk'}}))
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
+    mongoql_conv.InvalidQuery: Invalid query part "'junk'". You can only have `$options` with `$regex`.
 
     >>> "('myfield__regex', 'a')" in str(to_Q({"myfield": {"$regex": 'a', '$nin': ['aaa']}}))
     True
@@ -1055,12 +1055,12 @@ to_Q: Supported operators: Regular expressions
     >>> print(to_Q({"bubu": {"$regex": ".*", "$options": "mxs"}}))
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part 'mxs'. Unsupported regex option 'm'. Only i are supported !
+    mongoql_conv.InvalidQuery: Invalid query part 'mxs'. Unsupported regex option 'm'. Only i are supported !
 
     >>> print(to_Q({"bubu": {"$options": "i"}}))
     Traceback (most recent call last):
     ...
-    InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
+    mongoql_conv.InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
 
     >>> MyModel.objects.clean_and_create([(None, "prefix__"+i) for i in string.ascii_letters])
     >>> MyModel.objects.filter(to_Q({"field2": {"$regex": '[a-b]', "$options": 'i'}}))
@@ -1114,6 +1114,6 @@ Ofcourse, it won't do much::
     >>> MyVisitor('obj').visit({'field': {'$ne': 'test'}})
     Traceback (most recent call last):
     ...
-    InvalidQuery: MyVisitor doesn't support operator '$ne'
+    mongoql_conv.InvalidQuery: MyVisitor doesn't support operator '$ne'
 
 Take a look at ``ExprVisitor`` too see all the methods you *should* implement.

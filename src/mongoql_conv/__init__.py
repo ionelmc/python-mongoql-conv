@@ -21,7 +21,7 @@ from six import reraise
 from six import with_metaclass
 
 __all__ = "InvalidQuery", "to_string", "to_func"
-
+__version__ = "0.4.1"
 NoneType = type(None)
 
 
@@ -69,9 +69,9 @@ if sys.version_info[0] == 3:
     require_integer = require(int)
     require_value = require(int, float, str, bool, NoneType)
 else:
-    require_string = require(str, unicode)
-    require_integer = require(int, long)
-    require_value = require(int, long, float, str, unicode, bool, NoneType)
+    require_string = require(str, unicode)  # noqa
+    require_integer = require(int, long)  # noqa
+    require_value = require(int, long, float, str, unicode, bool, NoneType)  # noqa
 
 Skip = object()
 Stripped = object()
