@@ -64,6 +64,7 @@ def require(*types):
         return value
     return require_
 
+
 if sys.version_info[0] == 3:
     require_string = require(str)
     require_integer = require(int)
@@ -249,6 +250,8 @@ class LaxNone(object):
     __iter__ = staticmethod(lambda: iter(()))
     __mod__ = staticmethod(lambda _: LaxNone)
     __hash__ = None
+
+
 LaxNone = LaxNone()
 
 

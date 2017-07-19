@@ -881,16 +881,16 @@ Compiles down to a Django Q object tree::
 
     >>> from test_app.models import MyModel
     >>> MyModel.objects.clean_and_create([(i, i) for i in range(5)])
-    >>> MyModel.objects.filter(to_Q({"field1": 1}))
+    >>> list(MyModel.objects.filter(to_Q({"field1": 1})))
     [<MyModel: field1=1, field2='1'>]
 
-    >>> MyModel.objects.filter(to_Q({"field1": 1, "field2": 1}))
+    >>> list(MyModel.objects.filter(to_Q({"field1": 1, "field2": 1})))
     [<MyModel: field1=1, field2='1'>]
 
     >>> print(to_Q({"myfield": {"$in": [1, 2]}}))
     (AND: ('myfield__in', [1, 2]))
 
-    >>> MyModel.objects.filter(to_Q({"field1": {"$in": [1, 2]}}))
+    >>> list(MyModel.objects.filter(to_Q({"field1": {"$in": [1, 2]}})))
     [<MyModel: field1=1, field2='1'>, <MyModel: field1=2, field2='2'>]
 
     >>> print(to_Q({"myfield": {"$in": {1: 2}}}))
@@ -901,7 +901,7 @@ Compiles down to a Django Q object tree::
     >>> print(to_Q({"myfield": {"$and": []}}))
     (AND: )
 
-    >>> MyModel.objects.filter(to_Q({"field1": {"$and": []}}))
+    >>> list(MyModel.objects.filter(to_Q({"field1": {"$and": []}})))
     [<MyModel: field1=0, field2='0'>, <MyModel: field1=1, field2='1'>, <MyModel: field1=2, field2='2'>, <MyModel: field1=3, field2='3'>, <MyModel: field1=4, field2='4'>]
 
 
@@ -916,7 +916,7 @@ to_Q: Supported operators: Arithmetic
     >>> print(to_Q({"myfield": {"$gt": 1}}))
     (AND: ('myfield__gt', 1))
 
-    >>> MyModel.objects.filter(to_Q({"field1": {"$gt": 2}}))
+    >>> list(MyModel.objects.filter(to_Q({"field1": {"$gt": 2}})))
     [<MyModel: field1=3, field2='3'>, <MyModel: field1=4, field2='4'>]
 
 * **$gte**::
@@ -924,7 +924,7 @@ to_Q: Supported operators: Arithmetic
     >>> print(to_Q({"myfield": {"$gte": 1}}))
     (AND: ('myfield__gte', 1))
 
-    >>> MyModel.objects.filter(to_Q({"field1": {"$gte": 2}}))
+    >>> list(MyModel.objects.filter(to_Q({"field1": {"$gte": 2}})))
     [<MyModel: field1=2, field2='2'>, <MyModel: field1=3, field2='3'>, <MyModel: field1=4, field2='4'>]
 
 * **$lt**::
@@ -932,7 +932,7 @@ to_Q: Supported operators: Arithmetic
     >>> print(to_Q({"myfield": {"$lt": 1}}))
     (AND: ('myfield__lt', 1))
 
-    >>> MyModel.objects.filter(to_Q({"field1": {"$lt": 1}}))
+    >>> list(MyModel.objects.filter(to_Q({"field1": {"$lt": 1}})))
     [<MyModel: field1=0, field2='0'>]
 
 * **$lte**::
@@ -940,7 +940,7 @@ to_Q: Supported operators: Arithmetic
     >>> print(to_Q({"myfield": {"$lte": 1}}))
     (AND: ('myfield__lte', 1))
 
-    >>> MyModel.objects.filter(to_Q({"field1": {"$lte": 1}}))
+    >>> list(MyModel.objects.filter(to_Q({"field1": {"$lte": 1}})))
     [<MyModel: field1=0, field2='0'>, <MyModel: field1=1, field2='1'>]
 
 * **$eq**::
@@ -948,20 +948,20 @@ to_Q: Supported operators: Arithmetic
     >>> print(to_Q({"myfield": {"$eq": 1}}))
     (AND: ('myfield', 1))
 
-    >>> MyModel.objects.filter(to_Q({"field1": 1}))
+    >>> list(MyModel.objects.filter(to_Q({"field1": 1})))
     [<MyModel: field1=1, field2='1'>]
 
     >>> print(to_Q({"myfield": 1}))
     (AND: ('myfield', 1))
 
-    >>> MyModel.objects.filter(to_Q({"field1": {"$eq": 1}}))
+    >>> list(MyModel.objects.filter(to_Q({"field1": {"$eq": 1}})))
     [<MyModel: field1=1, field2='1'>]
 
 * **$ne**::
 
     >>> str(to_Q({"myfield": {"$ne": 1}})) in ["(NOT (AND: ('myfield', 1)))", "(AND: (NOT (AND: ('myfield', 1))))"]
     True
-    >>> MyModel.objects.filter(to_Q({"field1": {"$ne": 1}}))
+    >>> list(MyModel.objects.filter(to_Q({"field1": {"$ne": 1}})))
     [<MyModel: field1=0, field2='0'>, <MyModel: field1=2, field2='2'>, <MyModel: field1=3, field2='3'>, <MyModel: field1=4, field2='4'>]
 
 * **$mod**::
@@ -980,7 +980,7 @@ to_Q: Supported operators: Containers
     >>> print(to_Q({"myfield": {"$in": (1, 2, 3)}}))
     (AND: ('myfield__in', (1, 2, 3)))
 
-    >>> MyModel.objects.filter(to_Q({"field1": {"$in": (1, 2)}}))
+    >>> list(MyModel.objects.filter(to_Q({"field1": {"$in": (1, 2)}})))
     [<MyModel: field1=1, field2='1'>, <MyModel: field1=2, field2='2'>]
 
 * **$nin**::
@@ -988,7 +988,7 @@ to_Q: Supported operators: Containers
     >>> str(to_Q({"myfield": {"$nin": [1, 2, 3]}})) in ["(NOT (AND: ('myfield__in', [1, 2, 3])))", "(AND: (NOT (AND: ('myfield__in', [1, 2, 3]))))"]
     True
 
-    >>> MyModel.objects.filter(to_Q({"field1": {"$nin": (1, 2)}}))
+    >>> list(MyModel.objects.filter(to_Q({"field1": {"$nin": (1, 2)}})))
     [<MyModel: field1=0, field2='0'>, <MyModel: field1=3, field2='3'>, <MyModel: field1=4, field2='4'>]
 
 * **$size**::
@@ -1020,7 +1020,7 @@ to_Q: Supported operators: Boolean operators
     >>> print(to_Q({'$or':  [{"bubu": {"$gt": 1}}, {'bubu': {'$lt': 2}}]}))
     (OR: ('bubu__gt', 1), ('bubu__lt', 2))
 
-    >>> MyModel.objects.filter(to_Q({'$or': [{"field1": {"$gt": 3}}, {'field1': {'$lt': 2}}]}))
+    >>> list(MyModel.objects.filter(to_Q({'$or': [{"field1": {"$gt": 3}}, {'field1': {'$lt': 2}}]})))
     [<MyModel: field1=0, field2='0'>, <MyModel: field1=1, field2='1'>, <MyModel: field1=4, field2='4'>]
 
 * **$and**::
@@ -1028,7 +1028,7 @@ to_Q: Supported operators: Boolean operators
     >>> print(to_Q({'$and':  [{"bubu": {"$gt": 1}}, {'bubu': {'$lt': 2}}]}))
     (AND: ('bubu__gt', 1), ('bubu__lt', 2))
 
-    >>> MyModel.objects.filter(to_Q({'$and': [{"field1": {"$gt": 1}}, {'field1': {'$lt': 3}}]}))
+    >>> list(MyModel.objects.filter(to_Q({'$and': [{"field1": {"$gt": 1}}, {'field1': {'$lt': 3}}]})))
     [<MyModel: field1=2, field2='2'>]
 
 * **$*nesting***::
@@ -1045,7 +1045,7 @@ to_Q: Supported operators: Boolean operators
     ... ]}))
     (AND: ('bubu__gt', 1), (OR: ('bubu__lt', 2), (AND: ('bubu__lt', 3), ('bubu__lt', 4))))
 
-    >>> MyModel.objects.filter(to_Q({'$and': [
+    >>> list(MyModel.objects.filter(to_Q({'$and': [
     ...     {"field1": {"$gt": 1}},
     ...     {'$or': [
     ...         {'field2': {'$lt': 2}},
@@ -1054,7 +1054,7 @@ to_Q: Supported operators: Boolean operators
     ...             {'field2': {'$gt': 2}},
     ...         ]}
     ...     ]}
-    ... ]}))
+    ... ]})))
     [<MyModel: field1=3, field2='3'>, <MyModel: field1=4, field2='4'>]
 
 to_Q: Supported operators: Regular expressions
@@ -1094,10 +1094,10 @@ to_Q: Supported operators: Regular expressions
     mongoql_conv.InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
 
     >>> MyModel.objects.clean_and_create([(None, "prefix__"+i) for i in string.ascii_letters])
-    >>> MyModel.objects.filter(to_Q({"field2": {"$regex": '[a-b]', "$options": 'i'}}))
+    >>> list(MyModel.objects.filter(to_Q({"field2": {"$regex": '[a-b]', "$options": 'i'}})))
     [<MyModel: field1=None, field2='prefix__a'>, <MyModel: field1=None, field2='prefix__b'>, <MyModel: field1=None, field2='prefix__A'>, <MyModel: field1=None, field2='prefix__B'>]
 
-    >>> MyModel.objects.filter(to_Q({"field2": {"$regex": '[a-c]', "$nin": ['prefix__c']}}))
+    >>> list(MyModel.objects.filter(to_Q({"field2": {"$regex": '[a-c]', "$nin": ['prefix__c']}})))
     [<MyModel: field1=None, field2='prefix__a'>, <MyModel: field1=None, field2='prefix__b'>]
 
     >>> total = MyModel.objects.count()
