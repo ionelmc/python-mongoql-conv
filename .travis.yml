@@ -22,10 +22,6 @@ env:
     - TOXENV=2.7-1.8-nocover
     - TOXENV=2.7-1.9,coveralls
     - TOXENV=2.7-1.9-nocover
-    - TOXENV=3.3-1.10,coveralls
-    - TOXENV=3.3-1.10-nocover
-    - TOXENV=3.3-1.11,coveralls
-    - TOXENV=3.3-1.11-nocover
     - TOXENV=3.3-1.5,coveralls
     - TOXENV=3.3-1.5-nocover
     - TOXENV=3.3-1.6,coveralls
@@ -34,8 +30,6 @@ env:
     - TOXENV=3.3-1.7-nocover
     - TOXENV=3.3-1.8,coveralls
     - TOXENV=3.3-1.8-nocover
-    - TOXENV=3.3-1.9,coveralls
-    - TOXENV=3.3-1.9-nocover
     - TOXENV=3.4-1.10,coveralls
     - TOXENV=3.4-1.10-nocover
     - TOXENV=3.4-1.11,coveralls
