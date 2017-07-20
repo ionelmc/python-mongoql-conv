@@ -1189,3 +1189,21 @@ Ofcourse, it won't do much::
     mongoql_conv.InvalidQuery: MyVisitor doesn't support operator '$ne'
 
 Take a look at ``ExprVisitor`` too see all the methods you *should* implement.
+
+Note that the validate method is optional but if you don't implement it you'll get a warning::
+
+    >>> import warnings
+    >>> class MyVisitor(BaseVisitor):
+    ...     def __init__(self, object_name):
+    ...         self.object_name = object_name
+    ...     def visit_foobar(self, value, field_name, context):
+    ...         return "foobar(%s[%r], %r)" % (self.object_name, field_name, value)
+    ...     def render_and(self, parts, field_name, context):
+    ...         return ' & '.join(parts)
+    >>> with warnings.catch_warnings(record=True) as w:
+    ...     MyVisitor('obj').visit({'field': {'$foobar': 'test'}})
+    "foobar(obj['field'], 'test')"
+    >>> len(w)
+    1
+    >>> w[0].message
+    UserWarning('Missing validator validate_foobar in MyVisitor',)
