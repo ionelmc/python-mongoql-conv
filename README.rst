@@ -66,9 +66,10 @@ Overview
 Library to convert those MongoDB queries to something else, like a python expresion, a function or a Django Q object
 tree to be used with a ORM query.
 
-* Free software: BSD license
 For now, only supports flat operations. No subdocuments. It might work but results are undefined/buggy. *Could be fixed
 though ...*
+
+* Free software: BSD license
 
 Installation
 ============
