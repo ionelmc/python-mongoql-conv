@@ -7,7 +7,6 @@ env:
     - SEGFAULT_SIGNALS=all
   matrix:
     - TOXENV=check
-    - TOXENV=docs
 matrix:
   include:
     - python: '2.7'
@@ -138,24 +137,6 @@ matrix:
         - TOXENV=3.5-1.11-nocov
     - python: '3.5'
       env:
-        - TOXENV=3.5-1.5-cover,report,coveralls,codecov
-    - python: '3.5'
-      env:
-        - TOXENV=3.5-1.5-nocov
-    - python: '3.5'
-      env:
-        - TOXENV=3.5-1.6-cover,report,coveralls,codecov
-    - python: '3.5'
-      env:
-        - TOXENV=3.5-1.6-nocov
-    - python: '3.5'
-      env:
-        - TOXENV=3.5-1.7-cover,report,coveralls,codecov
-    - python: '3.5'
-      env:
-        - TOXENV=3.5-1.7-nocov
-    - python: '3.5'
-      env:
         - TOXENV=3.5-1.8-cover,report,coveralls,codecov
     - python: '3.5'
       env:
@@ -178,24 +159,6 @@ matrix:
     - python: '3.6'
       env:
         - TOXENV=3.6-1.11-nocov
-    - python: '3.6'
-      env:
-        - TOXENV=3.6-1.5-cover,report,coveralls,codecov
-    - python: '3.6'
-      env:
-        - TOXENV=3.6-1.5-nocov
-    - python: '3.6'
-      env:
-        - TOXENV=3.6-1.6-cover,report,coveralls,codecov
-    - python: '3.6'
-      env:
-        - TOXENV=3.6-1.6-nocov
-    - python: '3.6'
-      env:
-        - TOXENV=3.6-1.7-cover,report,coveralls,codecov
-    - python: '3.6'
-      env:
-        - TOXENV=3.6-1.7-nocov
     - python: '3.6'
       env:
         - TOXENV=3.6-1.8-cover,report,coveralls,codecov
