@@ -265,7 +265,7 @@ to_string: Supported operators: Regular expressions
     "re.search('.*x', X['bubu'], 0)"
 
     >>> to_string({"myfield": {"$regex": 'a', "$options": 'i'}})
-    "re.search('a', row['myfield'], 2)"
+    "re.search('a', row['myfield'], ...2...)"
 
     >>> closure = {}
     >>> to_string({"bubu": {"$regex": ".*x"}}, closure=closure), closure
@@ -274,7 +274,8 @@ to_string: Supported operators: Regular expressions
     >>> to_string({"myfield": {"$regex": 'junk('}})
     Traceback (most recent call last):
     ...
-    mongoql_conv.InvalidQuery: Invalid regular expression 'junk(': unbalanced parenthesis
+    mongoql_conv.InvalidQuery: Invalid regular expression 'junk(':...
+
 
     >>> to_string({"myfield": {"$regex": 'a', 'junk': 'junk'}})
     Traceback (most recent call last):
@@ -534,7 +535,7 @@ to_func: Supported operators: Regular expressions
     >>> to_func({"myfield": {"$regex": 'junk('}}).source
     Traceback (most recent call last):
     ...
-    mongoql_conv.InvalidQuery: Invalid regular expression 'junk(': unbalanced parenthesis
+    mongoql_conv.InvalidQuery: Invalid regular expression 'junk(':...
 
     >>> to_func({"myfield": {"$regex": 'a', 'junk': 'junk'}}).source
     Traceback (most recent call last):
@@ -829,7 +830,7 @@ to_func (lax mode): Supported operators: Regular expressions
     >>> to_func({"myfield": {"$regex": 'junk('}}, lax=True).source
     Traceback (most recent call last):
     ...
-    mongoql_conv.InvalidQuery: Invalid regular expression 'junk(': unbalanced parenthesis
+    mongoql_conv.InvalidQuery: Invalid regular expression 'junk(':...
 
     >>> to_func({"myfield": {"$regex": 'a', 'junk': 'junk'}}, lax=True).source
     Traceback (most recent call last):
@@ -1086,7 +1087,7 @@ to_Q: Supported operators: Regular expressions
     >>> print(to_Q({"myfield": {"$regex": 'junk('}}))
     Traceback (most recent call last):
     ...
-    mongoql_conv.InvalidQuery: Invalid regular expression 'junk(': unbalanced parenthesis
+    mongoql_conv.InvalidQuery: Invalid regular expression 'junk(':...
 
     >>> print(to_Q({"myfield": {"$regex": 'a', 'junk': 'junk'}}))
     Traceback (most recent call last):
