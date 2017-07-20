@@ -299,6 +299,22 @@ to_string: Supported operators: Regular expressions
     ...
     mongoql_conv.InvalidQuery: Invalid query part {'$options': 'i'}. Cannot have $options without $regex.
 
+to_string (lax mode)
+====================
+
+to_string (lax mode): Supported operators: Containers
+`````````````````````````````````````````````````````
+
+* **$all**::
+
+    >>> to_string({"myfield": {"$all": [1, 2, 3]}}, lax=True)
+    "set(row.get('myfield', LaxNone)) >= {1, 2, 3}"
+    >>> to_string({"myfield": {"$all": 1}})
+    Traceback (most recent call last):
+    ...
+    mongoql_conv.InvalidQuery: Invalid query part 1. Expected one of: set, list, tuple, frozenset.
+
+
 to_func
 =======
 
@@ -592,6 +608,10 @@ to_func: Supported operators: Regular expressions
 
 to_func (lax mode)
 ==================
+
+.. note::
+
+    Lax mode allows testing against missing fields.
 
 ::
 
@@ -1140,6 +1160,8 @@ There are few requirements for a visitor. Fist, you need to be able to render bo
     ...         self.object_name = object_name
     ...     def visit_foobar(self, value, field_name, context):
     ...         return "foobar(%s[%r], %r)" % (self.object_name, field_name, value)
+    ...     def validate_foobar(self, value, field_name, context):
+    ...         return value
     >>> MyVisitor('obj').visit({'field': {'$foobar': 'test'}})
     Traceback (most recent call last):
     ...
@@ -1154,6 +1176,8 @@ This is the minimal code to have a custom generator::
     ...         return "foobar(%s[%r], %r)" % (self.object_name, field_name, value)
     ...     def render_and(self, parts, field_name, context):
     ...         return ' & '.join(parts)
+    ...     def validate_foobar(self, value, field_name, context):
+    ...         return value
     >>> MyVisitor('obj').visit({'field': {'$foobar': 'test'}})
     "foobar(obj['field'], 'test')"
 
