@@ -1,77 +1,277 @@
 language: python
-python: 2.7
 sudo: false
+cache: pip
 env:
   global:
-    LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
+    - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
+    - SEGFAULT_SIGNALS=all
   matrix:
     - TOXENV=check
-    - TOXENV=2.7-1.10,coveralls
-    - TOXENV=2.7-1.10-nocover
-    - TOXENV=2.7-1.11,coveralls
-    - TOXENV=2.7-1.11-nocover
-    - TOXENV=2.7-1.4,coveralls
-    - TOXENV=2.7-1.4-nocover
-    - TOXENV=2.7-1.5,coveralls
-    - TOXENV=2.7-1.5-nocover
-    - TOXENV=2.7-1.6,coveralls
-    - TOXENV=2.7-1.6-nocover
-    - TOXENV=2.7-1.7,coveralls
-    - TOXENV=2.7-1.7-nocover
-    - TOXENV=2.7-1.8,coveralls
-    - TOXENV=2.7-1.8-nocover
-    - TOXENV=2.7-1.9,coveralls
-    - TOXENV=2.7-1.9-nocover
-    - TOXENV=3.3-1.5,coveralls
-    - TOXENV=3.3-1.5-nocover
-    - TOXENV=3.3-1.6,coveralls
-    - TOXENV=3.3-1.6-nocover
-    - TOXENV=3.3-1.7,coveralls
-    - TOXENV=3.3-1.7-nocover
-    - TOXENV=3.3-1.8,coveralls
-    - TOXENV=3.3-1.8-nocover
-    - TOXENV=3.4-1.10,coveralls
-    - TOXENV=3.4-1.10-nocover
-    - TOXENV=3.4-1.11,coveralls
-    - TOXENV=3.4-1.11-nocover
-    - TOXENV=3.4-1.5,coveralls
-    - TOXENV=3.4-1.5-nocover
-    - TOXENV=3.4-1.6,coveralls
-    - TOXENV=3.4-1.6-nocover
-    - TOXENV=3.4-1.7,coveralls
-    - TOXENV=3.4-1.7-nocover
-    - TOXENV=3.4-1.8,coveralls
-    - TOXENV=3.4-1.8-nocover
-    - TOXENV=3.4-1.9,coveralls
-    - TOXENV=3.4-1.9-nocover
-    - TOXENV=pypy-1.10,coveralls
-    - TOXENV=pypy-1.10-nocover
-    - TOXENV=pypy-1.11,coveralls
-    - TOXENV=pypy-1.11-nocover
-    - TOXENV=pypy-1.4,coveralls
-    - TOXENV=pypy-1.4-nocover
-    - TOXENV=pypy-1.5,coveralls
-    - TOXENV=pypy-1.5-nocover
-    - TOXENV=pypy-1.6,coveralls
-    - TOXENV=pypy-1.6-nocover
-    - TOXENV=pypy-1.7,coveralls
-    - TOXENV=pypy-1.7-nocover
-    - TOXENV=pypy-1.8,coveralls
-    - TOXENV=pypy-1.8-nocover
-    - TOXENV=pypy-1.9,coveralls
-    - TOXENV=pypy-1.9-nocover
+    - TOXENV=docs
+matrix:
+  include:
+    - python: '2.7'
+      env:
+        - TOXENV=2.7-1.10-cover,report,coveralls,codecov
+    - python: '2.7'
+      env:
+        - TOXENV=2.7-1.10-nocov
+    - python: '2.7'
+      env:
+        - TOXENV=2.7-1.11-cover,report,coveralls,codecov
+    - python: '2.7'
+      env:
+        - TOXENV=2.7-1.11-nocov
+    - python: '2.7'
+      env:
+        - TOXENV=2.7-1.4-cover,report,coveralls,codecov
+    - python: '2.7'
+      env:
+        - TOXENV=2.7-1.4-nocov
+    - python: '2.7'
+      env:
+        - TOXENV=2.7-1.5-cover,report,coveralls,codecov
+    - python: '2.7'
+      env:
+        - TOXENV=2.7-1.5-nocov
+    - python: '2.7'
+      env:
+        - TOXENV=2.7-1.6-cover,report,coveralls,codecov
+    - python: '2.7'
+      env:
+        - TOXENV=2.7-1.6-nocov
+    - python: '2.7'
+      env:
+        - TOXENV=2.7-1.7-cover,report,coveralls,codecov
+    - python: '2.7'
+      env:
+        - TOXENV=2.7-1.7-nocov
+    - python: '2.7'
+      env:
+        - TOXENV=2.7-1.8-cover,report,coveralls,codecov
+    - python: '2.7'
+      env:
+        - TOXENV=2.7-1.8-nocov
+    - python: '2.7'
+      env:
+        - TOXENV=2.7-1.9-cover,report,coveralls,codecov
+    - python: '2.7'
+      env:
+        - TOXENV=2.7-1.9-nocov
+    - python: '3.3'
+      env:
+        - TOXENV=3.3-1.5-cover,report,coveralls,codecov
+    - python: '3.3'
+      env:
+        - TOXENV=3.3-1.5-nocov
+    - python: '3.3'
+      env:
+        - TOXENV=3.3-1.6-cover,report,coveralls,codecov
+    - python: '3.3'
+      env:
+        - TOXENV=3.3-1.6-nocov
+    - python: '3.3'
+      env:
+        - TOXENV=3.3-1.7-cover,report,coveralls,codecov
+    - python: '3.3'
+      env:
+        - TOXENV=3.3-1.7-nocov
+    - python: '3.3'
+      env:
+        - TOXENV=3.3-1.8-cover,report,coveralls,codecov
+    - python: '3.3'
+      env:
+        - TOXENV=3.3-1.8-nocov
+    - python: '3.4'
+      env:
+        - TOXENV=3.4-1.10-cover,report,coveralls,codecov
+    - python: '3.4'
+      env:
+        - TOXENV=3.4-1.10-nocov
+    - python: '3.4'
+      env:
+        - TOXENV=3.4-1.11-cover,report,coveralls,codecov
+    - python: '3.4'
+      env:
+        - TOXENV=3.4-1.11-nocov
+    - python: '3.4'
+      env:
+        - TOXENV=3.4-1.5-cover,report,coveralls,codecov
+    - python: '3.4'
+      env:
+        - TOXENV=3.4-1.5-nocov
+    - python: '3.4'
+      env:
+        - TOXENV=3.4-1.6-cover,report,coveralls,codecov
+    - python: '3.4'
+      env:
+        - TOXENV=3.4-1.6-nocov
+    - python: '3.4'
+      env:
+        - TOXENV=3.4-1.7-cover,report,coveralls,codecov
+    - python: '3.4'
+      env:
+        - TOXENV=3.4-1.7-nocov
+    - python: '3.4'
+      env:
+        - TOXENV=3.4-1.8-cover,report,coveralls,codecov
+    - python: '3.4'
+      env:
+        - TOXENV=3.4-1.8-nocov
+    - python: '3.4'
+      env:
+        - TOXENV=3.4-1.9-cover,report,coveralls,codecov
+    - python: '3.4'
+      env:
+        - TOXENV=3.4-1.9-nocov
+    - python: '3.5'
+      env:
+        - TOXENV=3.5-1.10-cover,report,coveralls,codecov
+    - python: '3.5'
+      env:
+        - TOXENV=3.5-1.10-nocov
+    - python: '3.5'
+      env:
+        - TOXENV=3.5-1.11-cover,report,coveralls,codecov
+    - python: '3.5'
+      env:
+        - TOXENV=3.5-1.11-nocov
+    - python: '3.5'
+      env:
+        - TOXENV=3.5-1.5-cover,report,coveralls,codecov
+    - python: '3.5'
+      env:
+        - TOXENV=3.5-1.5-nocov
+    - python: '3.5'
+      env:
+        - TOXENV=3.5-1.6-cover,report,coveralls,codecov
+    - python: '3.5'
+      env:
+        - TOXENV=3.5-1.6-nocov
+    - python: '3.5'
+      env:
+        - TOXENV=3.5-1.7-cover,report,coveralls,codecov
+    - python: '3.5'
+      env:
+        - TOXENV=3.5-1.7-nocov
+    - python: '3.5'
+      env:
+        - TOXENV=3.5-1.8-cover,report,coveralls,codecov
+    - python: '3.5'
+      env:
+        - TOXENV=3.5-1.8-nocov
+    - python: '3.5'
+      env:
+        - TOXENV=3.5-1.9-cover,report,coveralls,codecov
+    - python: '3.5'
+      env:
+        - TOXENV=3.5-1.9-nocov
+    - python: '3.6'
+      env:
+        - TOXENV=3.6-1.10-cover,report,coveralls,codecov
+    - python: '3.6'
+      env:
+        - TOXENV=3.6-1.10-nocov
+    - python: '3.6'
+      env:
+        - TOXENV=3.6-1.11-cover,report,coveralls,codecov
+    - python: '3.6'
+      env:
+        - TOXENV=3.6-1.11-nocov
+    - python: '3.6'
+      env:
+        - TOXENV=3.6-1.5-cover,report,coveralls,codecov
+    - python: '3.6'
+      env:
+        - TOXENV=3.6-1.5-nocov
+    - python: '3.6'
+      env:
+        - TOXENV=3.6-1.6-cover,report,coveralls,codecov
+    - python: '3.6'
+      env:
+        - TOXENV=3.6-1.6-nocov
+    - python: '3.6'
+      env:
+        - TOXENV=3.6-1.7-cover,report,coveralls,codecov
+    - python: '3.6'
+      env:
+        - TOXENV=3.6-1.7-nocov
+    - python: '3.6'
+      env:
+        - TOXENV=3.6-1.8-cover,report,coveralls,codecov
+    - python: '3.6'
+      env:
+        - TOXENV=3.6-1.8-nocov
+    - python: '3.6'
+      env:
+        - TOXENV=3.6-1.9-cover,report,coveralls,codecov
+    - python: '3.6'
+      env:
+        - TOXENV=3.6-1.9-nocov
+    - python: 'pypy-5.4'
+      env:
+        - TOXENV=pypy-1.10-cover,report,coveralls,codecov
+    - python: 'pypy-5.4'
+      env:
+        - TOXENV=pypy-1.10-nocov
+    - python: 'pypy-5.4'
+      env:
+        - TOXENV=pypy-1.11-cover,report,coveralls,codecov
+    - python: 'pypy-5.4'
+      env:
+        - TOXENV=pypy-1.11-nocov
+    - python: 'pypy-5.4'
+      env:
+        - TOXENV=pypy-1.4-cover,report,coveralls,codecov
+    - python: 'pypy-5.4'
+      env:
+        - TOXENV=pypy-1.4-nocov
+    - python: 'pypy-5.4'
+      env:
+        - TOXENV=pypy-1.5-cover,report,coveralls,codecov
+    - python: 'pypy-5.4'
+      env:
+        - TOXENV=pypy-1.5-nocov
+    - python: 'pypy-5.4'
+      env:
+        - TOXENV=pypy-1.6-cover,report,coveralls,codecov
+    - python: 'pypy-5.4'
+      env:
+        - TOXENV=pypy-1.6-nocov
+    - python: 'pypy-5.4'
+      env:
+        - TOXENV=pypy-1.7-cover,report,coveralls,codecov
+    - python: 'pypy-5.4'
+      env:
+        - TOXENV=pypy-1.7-nocov
+    - python: 'pypy-5.4'
+      env:
+        - TOXENV=pypy-1.8-cover,report,coveralls,codecov
+    - python: 'pypy-5.4'
+      env:
+        - TOXENV=pypy-1.8-nocov
+    - python: 'pypy-5.4'
+      env:
+        - TOXENV=pypy-1.9-cover,report,coveralls,codecov
+    - python: 'pypy-5.4'
+      env:
+        - TOXENV=pypy-1.9-nocov
 before_install:
   - python --version
-  - virtualenv --version
-  - pip --version
   - uname -a
   - lsb_release -a
 install:
   - pip install tox
+  - virtualenv --version
+  - easy_install --version
+  - pip --version
+  - tox --version
 script:
   - tox -v
+after_failure:
+  - more .tox/log/* | cat
+  - more .tox/*/log/* | cat
 notifications:
   email:
     on_success: never
     on_failure: always
-

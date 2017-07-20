@@ -1,7 +1,6 @@
-Welcome to python-mongoql-conv's documentation!
-======================================
-
-Contents:
+========
+Contents
+========
 
 .. toctree::
    :maxdepth: 2
